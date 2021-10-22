@@ -40,8 +40,16 @@ class ViewController: UIViewController {
         timeSlider!.addTarget(self,
                               action: #selector(ViewController.sliderChange(slider:)),
                               for: UIControl.Event.valueChanged)
+        timeSlider!.addTarget(self,
+                              action: #selector(ViewController.sliderBegin(slider:)),
+                              for: UIControl.Event.touchDown)
+        timeSlider!.addTarget(self,
+                              action: #selector(ViewController.sliderTouchEnd(slider:)),
+                              for: UIControl.Event.touchUpInside)
         
-        player!.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: 1), queue: DispatchQueue.main) { currentTime in
+        // NOTE: 1/30，也即 1 帧回调一次
+        player!.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: DispatchQueue.main) { currentTime in
+            print(CMTimeGetSeconds(currentTime))
             let currentSecondes = CMTimeGetSeconds(currentTime)
             let duraion = self.player!.currentItem!.asset.duration
             let durationSeconds = CMTimeGetSeconds(duraion)
@@ -71,6 +79,16 @@ class ViewController: UIViewController {
         let currentDuration = CMTimeMakeWithSeconds(currentDurationSeconds, preferredTimescale: duraion.timescale)
         player?.seek(to: currentDuration)
         print(sliderValue)
+    }
+    
+    @objc
+    func sliderBegin(slider: UISlider) {
+        player?.pause()
+    }
+    
+    @objc
+    func sliderTouchEnd(slider: UISlider) {
+        player?.play()
     }
 }
 
