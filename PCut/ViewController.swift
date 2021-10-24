@@ -15,6 +15,9 @@ class ViewController: UIViewController {
 
     var player: AVPlayer?
     var timeSlider: UISlider?
+    var thumbnailGenarater: AVAssetImageGenerator?
+    
+    var thumbnailSrollView: UIScrollView?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,6 +58,11 @@ class ViewController: UIViewController {
             let durationSeconds = CMTimeGetSeconds(duraion)
             self.timeSlider?.setValue(Float(currentSecondes/durationSeconds), animated: false)
         }
+        
+        thumbnailSrollView = UIScrollView(frame: CGRect(x: 0, y: 500, width: UIScreen.main.bounds.width, height: 50))
+        thumbnailSrollView?.showsVerticalScrollIndicator = false
+        thumbnailSrollView?.showsHorizontalScrollIndicator = false
+        view.addSubview(thumbnailSrollView!)
     }
     
     override func observeValue(forKeyPath keyPath: String?,
@@ -65,7 +73,87 @@ class ViewController: UIViewController {
             let playerItem = object as! AVPlayerItem
             if playerItem.status == AVPlayerItem.Status.readyToPlay {
                 player?.play()
+                
+                generateThumbnails()
             }
+        }
+    }
+    
+    func generateThumbnails() {
+        thumbnailGenarater = AVAssetImageGenerator(asset: player!.currentItem!.asset)
+        thumbnailGenarater?.maximumSize = CGSize(width: 50, height: 0)
+        let duration = player!.currentItem!.asset.duration
+        
+        var times = [NSValue]()
+        let increment = Int32(duration.value / 20)
+        var currentValue = 2 * duration.timescale
+        while currentValue <= duration.value {
+            let time = CMTime(value: CMTimeValue(currentValue), timescale: duration.timescale)
+            times.append(NSValue(time: time))
+            currentValue += increment
+        }
+        
+        
+        // TODO: 抽帧算法完善，不要通过总数去算需要抽的帧
+        // 计算出 50 一个的总长度
+        // 总共抽几帧
+        //
+        
+        var thumbnails = [PCutThumbnail]()
+        var generateCount = times.count
+        
+//        DispatchQueue.global(qos: .background).async {
+//            imageGenerator.generateCGImagesAsynchronously(forTimes: localValue, completionHandler: ({ (startTime, generatedImage, endTime, result, error) in
+//                //Save image to file or perform any task
+//            }))
+//        }
+        
+        thumbnailGenarater?.generateCGImagesAsynchronously(forTimes: times, completionHandler: { requestTime, thumbnailImage, actualTime, generateResult, error in
+            switch generateResult {
+            case .succeeded:
+                let thumbnail = PCutThumbnail(time: actualTime, image: thumbnailImage!)
+                thumbnails.append(thumbnail)
+            case .failed:
+                if (error != nil) {
+                    print(error!.localizedDescription)
+                }
+            case .cancelled: break
+            }
+            
+            generateCount -= 1
+            if (generateCount == 0) {
+//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "PCutThumbnailGeneratorNotification"), object: nil)
+                DispatchQueue.main.async {
+                    self.refreshThumbnail(thumbnails: thumbnails)
+                }
+            }
+        })
+    }
+    
+    func refreshThumbnail(thumbnails: [PCutThumbnail]) {
+        let imageSize = CGSize(width: thumbnails.first!.image.width,
+                               height: thumbnails.first!.image.height)
+        var offsetX: CGFloat = 0
+        let imageRect = CGRect(x: offsetX,
+                               y: 0,
+                               width: imageSize.width,
+                               height: imageSize.height)
+        let imageWidth = imageRect.width * CGFloat(thumbnails.count)
+        thumbnailSrollView?.contentSize = CGSize(width: imageWidth,
+                                                 height: imageRect.size.height)
+        thumbnailSrollView?.frame = CGRect(x: 0,
+                                           y: thumbnailSrollView!.frame.origin.y,
+                                           width: thumbnailSrollView!.frame.size.width,
+                                           height: imageSize.height)
+        for thumbnail in thumbnails {
+            let thumbnailLayer = CALayer()
+            thumbnailLayer.contents = thumbnail.image
+            thumbnailLayer.frame = CGRect(x: offsetX,
+                                          y: 0,
+                                          width: imageRect.size.width,
+                                          height: imageRect.size.height)
+            thumbnailSrollView?.layer.addSublayer(thumbnailLayer)
+            offsetX += imageRect.size.width
         }
     }
     
