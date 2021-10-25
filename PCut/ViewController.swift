@@ -57,7 +57,6 @@ class ViewController: UIViewController {
         
         // NOTE: 1/30，也即 1 帧回调一次
         player!.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: DispatchQueue.main) { currentTime in
-            print(CMTimeGetSeconds(currentTime))
             let currentSecondes = CMTimeGetSeconds(currentTime)
             let duraion = self.player!.currentItem!.asset.duration
             let durationSeconds = CMTimeGetSeconds(duraion)
@@ -68,6 +67,9 @@ class ViewController: UIViewController {
         thumbnailSrollView?.showsVerticalScrollIndicator = false
         thumbnailSrollView?.showsHorizontalScrollIndicator = false
         view.addSubview(thumbnailSrollView!)
+        
+        let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchGesture(gesture:)))
+        thumbnailSrollView?.addGestureRecognizer(pinchGesture)
         
         let durationLabel = UILabel()
         durationLabel.text = String(format: "%.2fs", CMTimeGetSeconds(videoAsset.duration))
@@ -115,12 +117,6 @@ class ViewController: UIViewController {
         var thumbnails = [PCutThumbnail]()
         var generateCount = times.count
         
-//        DispatchQueue.global(qos: .background).async {
-//            imageGenerator.generateCGImagesAsynchronously(forTimes: localValue, completionHandler: ({ (startTime, generatedImage, endTime, result, error) in
-//                //Save image to file or perform any task
-//            }))
-//        }
-        
         thumbnailGenarater?.generateCGImagesAsynchronously(forTimes: times, completionHandler: { requestTime, thumbnailImage, actualTime, generateResult, error in
             switch generateResult {
             case .succeeded:
@@ -144,8 +140,8 @@ class ViewController: UIViewController {
     }
     
     func refreshThumbnail(thumbnails: [PCutThumbnail]) {
-        let imageSize = CGSize(width: thumbnails.first!.image.width,
-                               height: thumbnails.first!.image.height)
+        let imageSize = CGSize(width: thumbnails.first!.image!.width,
+                               height: thumbnails.first!.image!.height)
         var offsetX: CGFloat = 0
         let imageRect = CGRect(x: offsetX,
                                y: 0,
@@ -159,13 +155,11 @@ class ViewController: UIViewController {
                                            width: thumbnailSrollView!.frame.size.width,
                                            height: imageSize.height)
         for thumbnail in thumbnails {
-            let thumbnailLayer = CALayer()
-            thumbnailLayer.contents = thumbnail.image
-            thumbnailLayer.frame = CGRect(x: offsetX,
-                                          y: 0,
-                                          width: imageRect.size.width,
-                                          height: imageRect.size.height)
-            thumbnailSrollView?.layer.addSublayer(thumbnailLayer)
+            thumbnail.frame = CGRect(x: offsetX,
+                                     y: 0,
+                                     width: imageRect.size.width,
+                                     height: imageRect.size.height)
+            thumbnailSrollView?.layer.addSublayer(thumbnail)
             offsetX += imageRect.size.width
         }
     }
@@ -179,7 +173,6 @@ class ViewController: UIViewController {
         let currentDurationSeconds = durationSeconds * Float64(sliderValue)
         let currentDuration = CMTimeMakeWithSeconds(currentDurationSeconds, preferredTimescale: duraion.timescale)
         player?.seek(to: currentDuration)
-        print(sliderValue)
     }
     
     @objc
@@ -190,6 +183,11 @@ class ViewController: UIViewController {
     @objc
     func sliderTouchEnd(slider: UISlider) {
         player?.play()
+    }
+    
+    @objc
+    func pinchGesture(gesture: UIPinchGestureRecognizer) {
+        currentTimeScale = gesture.scale
     }
 }
 

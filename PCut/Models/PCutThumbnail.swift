@@ -8,7 +8,23 @@
 import UIKit
 import AVFoundation
 
-struct PCutThumbnail {
-    var time: CMTime
-    var image: CGImage
+class PCutThumbnail: CALayer {
+    var time: CMTime = CMTime.zero
+    var image: CGImage?
+    
+    override init() {
+        super.init()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    convenience init(time: CMTime, image: CGImage) {
+        self.init()
+        contents = image
+        
+        self.time = time
+        self.image = image
+    }
 }
