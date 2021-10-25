@@ -16,11 +16,16 @@ class ViewController: UIViewController {
     var player: AVPlayer?
     var timeSlider: UISlider?
     var thumbnailGenarater: AVAssetImageGenerator?
-    
     var thumbnailSrollView: UIScrollView?
+    
+    /// 时间轴缩放倍数
+    var currentTimeScale: Double = 3
+    var currentSpeed: Double = 1
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // NOTE: 这里的 timeScale 为缩放倍数，timeScale 增大说明在执行时间轴放大操作，需要抽出粒度更细的帧，反之说明在执行时间轴缩小操作，需要抽出粒度更粗的帧。
         
         let videoUrl = Bundle.main.url(forResource: "test_video", withExtension: "mov")
         let videoAsset = AVAsset(url: videoUrl!)
@@ -63,6 +68,13 @@ class ViewController: UIViewController {
         thumbnailSrollView?.showsVerticalScrollIndicator = false
         thumbnailSrollView?.showsHorizontalScrollIndicator = false
         view.addSubview(thumbnailSrollView!)
+        
+        let durationLabel = UILabel()
+        durationLabel.text = String(format: "%.2fs", CMTimeGetSeconds(videoAsset.duration))
+        durationLabel.font = UIFont.systemFont(ofSize: 11)
+        durationLabel.sizeToFit()
+        durationLabel.frame = CGRect(x: (UIScreen.main.bounds.width - durationLabel.frame.size.width) / 2, y: 20, width: durationLabel.frame.size.width, height: durationLabel.frame.size.height)
+        view.addSubview(durationLabel)
     }
     
     override func observeValue(forKeyPath keyPath: String?,
@@ -79,25 +91,26 @@ class ViewController: UIViewController {
         }
     }
     
+    func thumbnailCount() -> Int {
+        let speed: Double = 1
+        let duration = CMTimeGetSeconds(player!.currentItem!.asset.duration)
+        
+        return Int(ceil(duration * currentTimeScale / speed))
+    }
+    
     func generateThumbnails() {
         thumbnailGenarater = AVAssetImageGenerator(asset: player!.currentItem!.asset)
-        thumbnailGenarater?.maximumSize = CGSize(width: 50, height: 0)
+        thumbnailGenarater?.maximumSize = CGSize(width: 50, height: 50)
         let duration = player!.currentItem!.asset.duration
         
         var times = [NSValue]()
-        let increment = Int32(duration.value / 20)
-        var currentValue = 2 * duration.timescale
+        let increment = duration.value / Int64(thumbnailCount())
+        var currentValue = Int64(2 * duration.timescale)
         while currentValue <= duration.value {
             let time = CMTime(value: CMTimeValue(currentValue), timescale: duration.timescale)
             times.append(NSValue(time: time))
             currentValue += increment
         }
-        
-        
-        // TODO: 抽帧算法完善，不要通过总数去算需要抽的帧
-        // 计算出 50 一个的总长度
-        // 总共抽几帧
-        //
         
         var thumbnails = [PCutThumbnail]()
         var generateCount = times.count
