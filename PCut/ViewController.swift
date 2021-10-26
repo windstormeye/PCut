@@ -21,6 +21,7 @@ class ViewController: UIViewController {
     /// 时间轴缩放倍数
     var currentTimeScale: Double = 3
     var currentSpeed: Double = 1
+    var thumbnails = [PCutThumbnail]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -71,6 +72,8 @@ class ViewController: UIViewController {
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchGesture(gesture:)))
         thumbnailSrollView?.addGestureRecognizer(pinchGesture)
         
+        thumbnailSrollView?.panGestureRecognizer.require(toFail: pinchGesture)
+        
         let durationLabel = UILabel()
         durationLabel.text = String(format: "%.2fs", CMTimeGetSeconds(videoAsset.duration))
         durationLabel.font = UIFont.systemFont(ofSize: 11)
@@ -114,32 +117,33 @@ class ViewController: UIViewController {
             currentValue += increment
         }
         
-        var thumbnails = [PCutThumbnail]()
         var generateCount = times.count
         
         thumbnailGenarater?.generateCGImagesAsynchronously(forTimes: times, completionHandler: { requestTime, thumbnailImage, actualTime, generateResult, error in
             switch generateResult {
             case .succeeded:
                 let thumbnail = PCutThumbnail(time: actualTime, image: thumbnailImage!)
-                thumbnails.append(thumbnail)
+                self.appendThumbnail(thumbnail)
             case .failed:
                 if (error != nil) {
                     print(error!.localizedDescription)
                 }
             case .cancelled: break
+            @unknown default:
+                fatalError("error enum value")
             }
             
             generateCount -= 1
             if (generateCount == 0) {
 //                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "PCutThumbnailGeneratorNotification"), object: nil)
                 DispatchQueue.main.async {
-                    self.refreshThumbnail(thumbnails: thumbnails)
+                    self.refreshThumbnail()
                 }
             }
         })
     }
     
-    func refreshThumbnail(thumbnails: [PCutThumbnail]) {
+    func refreshThumbnail() {
         let imageSize = CGSize(width: thumbnails.first!.image!.width,
                                height: thumbnails.first!.image!.height)
         var offsetX: CGFloat = 0
@@ -188,6 +192,22 @@ class ViewController: UIViewController {
     @objc
     func pinchGesture(gesture: UIPinchGestureRecognizer) {
         currentTimeScale = gesture.scale
+        generateThumbnails()
+        print(currentTimeScale)
     }
 }
 
+extension ViewController {
+    func appendThumbnail(_ thumbnail: PCutThumbnail) {
+        let filterThumbnails = thumbnails.filter {
+            return thumbnail.time == $0.time
+        }
+        if (filterThumbnails.count == 0) {
+            thumbnails.append(thumbnail)
+            return
+        }
+        
+        let index = thumbnails.firstIndex(of: filterThumbnails.first!)
+        thumbnails[index!] = thumbnail
+    }
+}
