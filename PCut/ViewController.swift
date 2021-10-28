@@ -133,9 +133,8 @@ class ViewController: UIViewController {
             
             currentValue += increment
         }
-        
         var generateCount = times.count
-        // TODO: 时间计算逻辑好像错误了
+        var currentThumbnails = [PCutThumbnail]()
         
         DispatchQueue.global(qos: .background).async {
             self.thumbnailGenarater?.generateCGImagesAsynchronously(forTimes: times, completionHandler: { requestTime, thumbnailImage, actualTime, generateResult, error in
@@ -145,6 +144,7 @@ class ViewController: UIViewController {
                     if (!self.containTime(thumbnail.time)) {
                         self.thumbnails.append(thumbnail)
                     }
+                    currentThumbnails.append(thumbnail)
                 case .failed:
                     if (error != nil) {
                         print(error!.localizedDescription)
@@ -158,14 +158,14 @@ class ViewController: UIViewController {
                 if (generateCount == 0) {
     //                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "PCutThumbnailGeneratorNotification"), object: nil)
                     DispatchQueue.main.async {
-                        self.refreshThumbnail()
+                        self.refreshThumbnail(currentThumbnails)
                     }
                 }
             })
         }
     }
     
-    func refreshThumbnail() {
+    func refreshThumbnail(_ newThumbnails: [PCutThumbnail]) {
         let imageSize = CGSize(width: thumbnails.first!.image!.width,
                                height: thumbnails.first!.image!.height)
         var offsetX: CGFloat = 0
@@ -173,23 +173,38 @@ class ViewController: UIViewController {
                                y: 0,
                                width: imageSize.width,
                                height: imageSize.height)
-        let imageWidth = imageRect.width * CGFloat(thumbnails.count)
+        let imageWidth = imageRect.width * CGFloat(newThumbnails.count)
         thumbnailSrollView?.contentSize = CGSize(width: imageWidth,
                                                  height: imageRect.size.height)
         thumbnailSrollView?.frame = CGRect(x: 0,
                                            y: thumbnailSrollView!.frame.origin.y,
                                            width: thumbnailSrollView!.frame.size.width,
                                            height: imageSize.height)
-        for thumbnail in thumbnails {
+        thumbnailSrollView?.layer.sublayers?.removeAll()
+        
+        for thumbnail in newThumbnails {
             thumbnail.frame = CGRect(x: offsetX,
                                      y: 0,
                                      width: imageRect.size.width,
                                      height: imageRect.size.height)
-            thumbnailSrollView?.layer.addSublayer(thumbnail)
-            // TODO: 补一个判断帧是否上屏的方法
+            
+            if let sublayers = thumbnailSrollView!.layer.sublayers {
+                var thumbnailLayer = sublayers.filter({ $0.frame.origin.x == offsetX }).first
+                if (thumbnailLayer != nil) {
+                    thumbnailLayer = thumbnail
+                } else {
+                    thumbnailSrollView?.layer.addSublayer(thumbnail)
+                }
+            } else {
+                thumbnailSrollView?.layer.addSublayer(thumbnail)
+            }
             
             offsetX += imageRect.size.width
         }
+    }
+    
+    func containSublayer(_ offsetX: CGFloat) -> Bool {
+        return thumbnailSrollView!.subviews.filter({ $0.frame.origin.x == offsetX }).count > 0
     }
     
     @objc
@@ -219,8 +234,8 @@ class ViewController: UIViewController {
         switch gesture.state {
         case .ended:
             currentTimeScale += (gesture.scale - 1)
-            if (currentTimeScale < 0.5) {
-                currentTimeScale = 0.5
+            if (currentTimeScale < 0.1) {
+                currentTimeScale = 0.1
             }
             if (currentTimeScale > 10) {
                 currentTimeScale = 10
