@@ -17,6 +17,7 @@ class ViewController: UIViewController {
     var timeSlider: UISlider?
     var thumbnailGenarater: AVAssetImageGenerator?
     var thumbnailSrollView: UIScrollView?
+    var thumbnailView: PCutThumbnailView?
     
     /// 时间轴缩放倍数
     var currentTimeScale: Double = 3
@@ -30,11 +31,16 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.backgroundColor = UIColor.black
         // NOTE: 这里的 timeScale 为缩放倍数，timeScale 增大说明在执行时间轴放大操作，需要抽出粒度更细的帧，反之说明在执行时间轴缩小操作，需要抽出粒度更粗的帧。
         currentTimeScale = 1
-        
+                
         let videoUrl = Bundle.main.url(forResource: "test_video", withExtension: "mov")
         let videoAsset = AVAsset(url: videoUrl!)
+        
+        let videoSegment = PCutSegmentVideo(asset: videoAsset)
+        
+        
         let playerItem = AVPlayerItem(asset: videoAsset)
         player = AVPlayer(playerItem: playerItem)
         let playerLayer = AVPlayerLayer(player: player!)
@@ -61,7 +67,7 @@ class ViewController: UIViewController {
                               action: #selector(ViewController.sliderTouchEnd(slider:)),
                               for: UIControl.Event.touchUpInside)
         
-        // NOTE: 1/30，也即 1 帧回调一次
+        // NOTE: 1/30, per frame callback once
         player!.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: DispatchQueue.main) { currentTime in
             let currentSecondes = CMTimeGetSeconds(currentTime)
             let duraion = self.player!.currentItem!.asset.duration
@@ -76,8 +82,16 @@ class ViewController: UIViewController {
         
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchGesture(gesture:)))
         thumbnailSrollView?.addGestureRecognizer(pinchGesture)
-        
         thumbnailSrollView?.panGestureRecognizer.require(toFail: pinchGesture)
+        
+        
+        thumbnailView = PCutThumbnailView()
+        thumbnailView?.frame = CGRect(x: 0, y: 0, width: 0, height: thumbnailSrollView!.frame.size.height)
+        thumbnailView?.layer.borderColor = UIColor.white.cgColor
+        thumbnailView?.layer.borderWidth = 0.5
+        thumbnailView?.layer.cornerRadius = 4
+        thumbnailSrollView?.addSubview(thumbnailView!)
+        
         
         let durationLabel = UILabel()
         durationLabel.text = String(format: "%.2fs", CMTimeGetSeconds(videoAsset.duration))
@@ -115,10 +129,12 @@ class ViewController: UIViewController {
     
     func generateThumbnails() {
         thumbnailGenarater = AVAssetImageGenerator(asset: player!.currentItem!.asset)
-        thumbnailGenarater?.maximumSize = CGSize(width: 50, height: 50)
-        // NOTE: 关闭 AVAssetImageGenerator 抽帧缓存，使用精确时间查找
+        thumbnailGenarater?.maximumSize = CGSize(width: 100, height: 100)
+        // NOTE: turn off AVAssetImageGenerator thumbnail generate buffer
         thumbnailGenarater?.requestedTimeToleranceAfter = .zero
         thumbnailGenarater?.requestedTimeToleranceBefore = .zero
+        // NOTE: resize video angle
+        thumbnailGenarater?.appliesPreferredTrackTransform = true
         let duration = player!.currentItem!.asset.duration
         
         var times = [NSValue]()
@@ -174,13 +190,13 @@ class ViewController: UIViewController {
                                width: imageSize.width,
                                height: imageSize.height)
         let imageWidth = imageRect.width * CGFloat(newThumbnails.count)
-        thumbnailSrollView?.contentSize = CGSize(width: imageWidth,
-                                                 height: imageRect.size.height)
-        thumbnailSrollView?.frame = CGRect(x: 0,
-                                           y: thumbnailSrollView!.frame.origin.y,
-                                           width: thumbnailSrollView!.frame.size.width,
-                                           height: imageSize.height)
-        thumbnailSrollView?.layer.sublayers?.removeAll()
+        thumbnailView?.frame = CGRect(x: 0,
+                                      y: 0,
+                                      width: imageWidth,
+                                      height: thumbnailSrollView!.frame.size.height)
+        thumbnailSrollView?.contentSize = CGSize(width: thumbnailView!.frame.size.width,
+                                                 height: 0)
+        thumbnailView?.layer.sublayers?.removeAll()
         
         for thumbnail in newThumbnails {
             thumbnail.frame = CGRect(x: offsetX,
@@ -188,15 +204,15 @@ class ViewController: UIViewController {
                                      width: imageRect.size.width,
                                      height: imageRect.size.height)
             
-            if let sublayers = thumbnailSrollView!.layer.sublayers {
+            if let sublayers = thumbnailView!.layer.sublayers {
                 var thumbnailLayer = sublayers.filter({ $0.frame.origin.x == offsetX }).first
                 if (thumbnailLayer != nil) {
                     thumbnailLayer = thumbnail
                 } else {
-                    thumbnailSrollView?.layer.addSublayer(thumbnail)
+                    thumbnailView?.layer.addSublayer(thumbnail)
                 }
             } else {
-                thumbnailSrollView?.layer.addSublayer(thumbnail)
+                thumbnailView?.layer.addSublayer(thumbnail)
             }
             
             offsetX += imageRect.size.width
@@ -241,7 +257,6 @@ class ViewController: UIViewController {
                 currentTimeScale = 10
             }
             generateThumbnails()
-            print(currentTimeScale)
         default:
             break;
         }

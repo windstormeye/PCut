@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0C1775592726447600D80347 /* v_test_video.mov in Resources */ = {isa = PBXBuildFile; fileRef = 0C1775582726447600D80347 /* v_test_video.mov */; };
 		0C17755B2726479B00D80347 /* test_video.mov in Resources */ = {isa = PBXBuildFile; fileRef = 0C17755A2726479A00D80347 /* test_video.mov */; };
+		0C3E96BF272AF3B800B96EAB /* PCutThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3E96BE272AF3B800B96EAB /* PCutThumbnailView.swift */; };
+		0C3E96C2272AF42400B96EAB /* PCutSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3E96C1272AF42400B96EAB /* PCutSegment.swift */; };
 		0CF6F4322721B0E7008034FC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF6F4312721B0E7008034FC /* AppDelegate.swift */; };
 		0CF6F4342721B0E7008034FC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF6F4332721B0E7008034FC /* SceneDelegate.swift */; };
 		0CF6F4362721B0E7008034FC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF6F4352721B0E7008034FC /* ViewController.swift */; };
@@ -22,6 +24,8 @@
 /* Begin PBXFileReference section */
 		0C1775582726447600D80347 /* v_test_video.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = v_test_video.mov; sourceTree = "<group>"; };
 		0C17755A2726479A00D80347 /* test_video.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = test_video.mov; sourceTree = "<group>"; };
+		0C3E96BE272AF3B800B96EAB /* PCutThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutThumbnailView.swift; sourceTree = "<group>"; };
+		0C3E96C1272AF42400B96EAB /* PCutSegment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutSegment.swift; sourceTree = "<group>"; };
 		0CF6F42E2721B0E7008034FC /* PCut.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PCut.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0CF6F4312721B0E7008034FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0CF6F4332721B0E7008034FC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -45,6 +49,31 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0C3E96C0272AF40100B96EAB /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				0C3E96BE272AF3B800B96EAB /* PCutThumbnailView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		0C3E96C3272AF59A00B96EAB /* Thumbnail */ = {
+			isa = PBXGroup;
+			children = (
+				0CF6F44C2724FDB1008034FC /* PCutThumbnail.swift */,
+				0CF6F44E2724FFD3008034FC /* PCutThumbnailManager.swift */,
+			);
+			path = Thumbnail;
+			sourceTree = "<group>";
+		};
+		0C3E96C4272AF5A700B96EAB /* Segment */ = {
+			isa = PBXGroup;
+			children = (
+				0C3E96C1272AF42400B96EAB /* PCutSegment.swift */,
+			);
+			path = Segment;
+			sourceTree = "<group>";
+		};
 		0CF6F4252721B0E7008034FC = {
 			isa = PBXGroup;
 			children = (
@@ -67,6 +96,7 @@
 				0CF6F4312721B0E7008034FC /* AppDelegate.swift */,
 				0CF6F4332721B0E7008034FC /* SceneDelegate.swift */,
 				0CF6F4352721B0E7008034FC /* ViewController.swift */,
+				0C3E96C0272AF40100B96EAB /* Views */,
 				0CF6F44B2724FD79008034FC /* Models */,
 				0CF6F4372721B0E7008034FC /* Main.storyboard */,
 				0CF6F43A2721B0EA008034FC /* Assets.xcassets */,
@@ -81,8 +111,8 @@
 		0CF6F44B2724FD79008034FC /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				0CF6F44C2724FDB1008034FC /* PCutThumbnail.swift */,
-				0CF6F44E2724FFD3008034FC /* PCutThumbnailManager.swift */,
+				0C3E96C4272AF5A700B96EAB /* Segment */,
+				0C3E96C3272AF59A00B96EAB /* Thumbnail */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -162,7 +192,9 @@
 				0CF6F44F2724FFD3008034FC /* PCutThumbnailManager.swift in Sources */,
 				0CF6F4362721B0E7008034FC /* ViewController.swift in Sources */,
 				0CF6F4322721B0E7008034FC /* AppDelegate.swift in Sources */,
+				0C3E96BF272AF3B800B96EAB /* PCutThumbnailView.swift in Sources */,
 				0CF6F44D2724FDB1008034FC /* PCutThumbnail.swift in Sources */,
+				0C3E96C2272AF42400B96EAB /* PCutSegment.swift in Sources */,
 				0CF6F4342721B0E7008034FC /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
