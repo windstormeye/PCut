@@ -20,13 +20,18 @@ class ViewController: UIViewController {
     
     /// 时间轴缩放倍数
     var currentTimeScale: Double = 3
+    /// 片段速度
     var currentSpeed: Double = 1
+    /// 帧数据源
     var thumbnails = [PCutThumbnail]()
+    /// 已经上屏的帧
+    var screenThumbnails = [PCutThumbnail]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         // NOTE: 这里的 timeScale 为缩放倍数，timeScale 增大说明在执行时间轴放大操作，需要抽出粒度更细的帧，反之说明在执行时间轴缩小操作，需要抽出粒度更粗的帧。
+        currentTimeScale = 1
         
         let videoUrl = Bundle.main.url(forResource: "test_video", withExtension: "mov")
         let videoAsset = AVAsset(url: videoUrl!)
@@ -103,9 +108,17 @@ class ViewController: UIViewController {
         return Int(ceil(duration * currentTimeScale / speed))
     }
     
+    func containTime(_ time: CMTime) -> Bool {
+        return thumbnails.filter { return $0.time == time }.count > 0
+    }
+    
+    
     func generateThumbnails() {
         thumbnailGenarater = AVAssetImageGenerator(asset: player!.currentItem!.asset)
         thumbnailGenarater?.maximumSize = CGSize(width: 50, height: 50)
+        // NOTE: 关闭 AVAssetImageGenerator 抽帧缓存，使用精确时间查找
+        thumbnailGenarater?.requestedTimeToleranceAfter = .zero
+        thumbnailGenarater?.requestedTimeToleranceBefore = .zero
         let duration = player!.currentItem!.asset.duration
         
         var times = [NSValue]()
@@ -113,34 +126,43 @@ class ViewController: UIViewController {
         var currentValue = Int64(2 * duration.timescale)
         while currentValue <= duration.value {
             let time = CMTime(value: CMTimeValue(currentValue), timescale: duration.timescale)
-            times.append(NSValue(time: time))
+            
+            if (!containTime(time)) {
+                times.append(NSValue(time: time))
+            }
+            
             currentValue += increment
         }
         
         var generateCount = times.count
+        // TODO: 时间计算逻辑好像错误了
         
-        thumbnailGenarater?.generateCGImagesAsynchronously(forTimes: times, completionHandler: { requestTime, thumbnailImage, actualTime, generateResult, error in
-            switch generateResult {
-            case .succeeded:
-                let thumbnail = PCutThumbnail(time: actualTime, image: thumbnailImage!)
-                self.appendThumbnail(thumbnail)
-            case .failed:
-                if (error != nil) {
-                    print(error!.localizedDescription)
+        DispatchQueue.global(qos: .background).async {
+            self.thumbnailGenarater?.generateCGImagesAsynchronously(forTimes: times, completionHandler: { requestTime, thumbnailImage, actualTime, generateResult, error in
+                switch generateResult {
+                case .succeeded:
+                    let thumbnail = PCutThumbnail(time: actualTime, image: thumbnailImage!)
+                    if (!self.containTime(thumbnail.time)) {
+                        self.thumbnails.append(thumbnail)
+                    }
+                case .failed:
+                    if (error != nil) {
+                        print(error!.localizedDescription)
+                    }
+                case .cancelled: break
+                @unknown default:
+                    fatalError("error enum value")
                 }
-            case .cancelled: break
-            @unknown default:
-                fatalError("error enum value")
-            }
-            
-            generateCount -= 1
-            if (generateCount == 0) {
-//                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "PCutThumbnailGeneratorNotification"), object: nil)
-                DispatchQueue.main.async {
-                    self.refreshThumbnail()
+                
+                generateCount -= 1
+                if (generateCount == 0) {
+    //                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "PCutThumbnailGeneratorNotification"), object: nil)
+                    DispatchQueue.main.async {
+                        self.refreshThumbnail()
+                    }
                 }
-            }
-        })
+            })
+        }
     }
     
     func refreshThumbnail() {
@@ -164,6 +186,8 @@ class ViewController: UIViewController {
                                      width: imageRect.size.width,
                                      height: imageRect.size.height)
             thumbnailSrollView?.layer.addSublayer(thumbnail)
+            // TODO: 补一个判断帧是否上屏的方法
+            
             offsetX += imageRect.size.width
         }
     }
@@ -191,23 +215,20 @@ class ViewController: UIViewController {
     
     @objc
     func pinchGesture(gesture: UIPinchGestureRecognizer) {
-        currentTimeScale = gesture.scale
-        generateThumbnails()
-        print(currentTimeScale)
-    }
-}
-
-extension ViewController {
-    func appendThumbnail(_ thumbnail: PCutThumbnail) {
-        let filterThumbnails = thumbnails.filter {
-            return thumbnail.time == $0.time
-        }
-        if (filterThumbnails.count == 0) {
-            thumbnails.append(thumbnail)
-            return
-        }
         
-        let index = thumbnails.firstIndex(of: filterThumbnails.first!)
-        thumbnails[index!] = thumbnail
+        switch gesture.state {
+        case .ended:
+            currentTimeScale += (gesture.scale - 1)
+            if (currentTimeScale < 0.5) {
+                currentTimeScale = 0.5
+            }
+            if (currentTimeScale > 10) {
+                currentTimeScale = 10
+            }
+            generateThumbnails()
+            print(currentTimeScale)
+        default:
+            break;
+        }
     }
 }
