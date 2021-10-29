@@ -15,4 +15,5 @@ protocol PCutSegment {
 struct PCutSegmentVideo: PCutSegment {
     let id: UUID = UUID()
     var asset: AVAsset
+    var timeRange: CMTimeRange
 }

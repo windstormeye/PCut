@@ -13,19 +13,24 @@ var PlayerItemStatusContext = 0
 
 class ViewController: UIViewController {
 
+    let thumbnailWidth: CGFloat = 50
+    let composition = AVMutableComposition()
+    var timeline = PCutTimeline()
+    
     var player: AVPlayer?
     var timeSlider: UISlider?
     var thumbnailGenarater: AVAssetImageGenerator?
     var thumbnailSrollView: UIScrollView?
     var thumbnailView: PCutThumbnailView?
+    var playerItem: AVPlayerItem?
     
-    /// 时间轴缩放倍数
-    var currentTimeScale: Double = 3
-    /// 片段速度
+    /// timeline scale
+    var currentTimeScale: Double = 1
+    /// segment speed
     var currentSpeed: Double = 1
-    /// 帧数据源
+    /// frame data source
     var thumbnails = [PCutThumbnail]()
-    /// 已经上屏的帧
+    /// frame collections on the screen
     var screenThumbnails = [PCutThumbnail]()
     
     override func viewDidLoad() {
@@ -33,25 +38,30 @@ class ViewController: UIViewController {
         
         view.backgroundColor = UIColor.black
         // NOTE: 这里的 timeScale 为缩放倍数，timeScale 增大说明在执行时间轴放大操作，需要抽出粒度更细的帧，反之说明在执行时间轴缩小操作，需要抽出粒度更粗的帧。
-        currentTimeScale = 1
                 
-        let videoUrl = Bundle.main.url(forResource: "test_video", withExtension: "mov")
-        let videoAsset = AVAsset(url: videoUrl!)
+        let videoUrl_0 = Bundle.main.url(forResource: "test_video", withExtension: "mov")
+        let videoAsset_0 = AVAsset(url: videoUrl_0!)
+        let videoUrl_1 = Bundle.main.url(forResource: "test_video_2", withExtension: "mov")
+        let videoAsset_1 = AVAsset(url: videoUrl_1!)
         
-        let videoSegment = PCutSegmentVideo(asset: videoAsset)
+        let videoSegment_0 = PCutSegmentVideo(asset: videoAsset_0, timeRange: CMTimeRange(start: .zero, duration: videoAsset_0.duration))
+        let videoSegment_1 = PCutSegmentVideo(asset: videoAsset_1, timeRange: CMTimeRange(start: .zero, duration: videoAsset_1.duration))
+        timeline.segmentVideos.append(videoSegment_0)
+        timeline.segmentVideos.append(videoSegment_1)
         
+        mixTimelineVideos()
         
-        let playerItem = AVPlayerItem(asset: videoAsset)
+        playerItem = AVPlayerItem(asset: self.composition)
         player = AVPlayer(playerItem: playerItem)
         let playerLayer = AVPlayerLayer(player: player!)
         playerLayer.frame = CGRect(x: 0, y: 45, width: view.bounds.width, height: view.bounds.height/3)
         view.layer.addSublayer(playerLayer)
         
         
-        playerItem.addObserver(self,
-                               forKeyPath: "status",
-                               options: NSKeyValueObservingOptions.initial,
-                               context: &PlayerItemStatusContext)
+        playerItem!.addObserver(self,
+                                forKeyPath: "status",
+                                options: NSKeyValueObservingOptions.initial,
+                                context: &PlayerItemStatusContext)
         
         timeSlider = UISlider(frame: CGRect(x: 50, y: playerLayer.frame.size.height + playerLayer.frame.origin.y, width: UIScreen.main.bounds.width - 100, height: 50))
         view.addSubview(timeSlider!)
@@ -75,7 +85,7 @@ class ViewController: UIViewController {
             self.timeSlider?.setValue(Float(currentSecondes/durationSeconds), animated: false)
         }
         
-        thumbnailSrollView = UIScrollView(frame: CGRect(x: 0, y: 500, width: UIScreen.main.bounds.width, height: 50))
+        thumbnailSrollView = UIScrollView(frame: CGRect(x: 0, y: 500, width: UIScreen.main.bounds.width, height: thumbnailWidth))
         thumbnailSrollView?.showsVerticalScrollIndicator = false
         thumbnailSrollView?.showsHorizontalScrollIndicator = false
         view.addSubview(thumbnailSrollView!)
@@ -94,7 +104,7 @@ class ViewController: UIViewController {
         
         
         let durationLabel = UILabel()
-        durationLabel.text = String(format: "%.2fs", CMTimeGetSeconds(videoAsset.duration))
+        durationLabel.text = String(format: "%.2fs", CMTimeGetSeconds(self.composition.duration))
         durationLabel.font = UIFont.systemFont(ofSize: 11)
         durationLabel.sizeToFit()
         durationLabel.frame = CGRect(x: (UIScreen.main.bounds.width - durationLabel.frame.size.width) / 2, y: 20, width: durationLabel.frame.size.width, height: durationLabel.frame.size.height)
@@ -128,8 +138,8 @@ class ViewController: UIViewController {
     
     
     func generateThumbnails() {
-        thumbnailGenarater = AVAssetImageGenerator(asset: player!.currentItem!.asset)
-        thumbnailGenarater?.maximumSize = CGSize(width: 100, height: 100)
+        thumbnailGenarater = AVAssetImageGenerator(asset: playerItem!.asset)
+        thumbnailGenarater?.maximumSize = CGSize(width: thumbnailWidth, height: thumbnailWidth)
         // NOTE: turn off AVAssetImageGenerator thumbnail generate buffer
         thumbnailGenarater?.requestedTimeToleranceAfter = .zero
         thumbnailGenarater?.requestedTimeToleranceBefore = .zero
@@ -182,18 +192,16 @@ class ViewController: UIViewController {
     }
     
     func refreshThumbnail(_ newThumbnails: [PCutThumbnail]) {
-        let imageSize = CGSize(width: thumbnails.first!.image!.width,
-                               height: thumbnails.first!.image!.height)
         var offsetX: CGFloat = 0
         let imageRect = CGRect(x: offsetX,
                                y: 0,
-                               width: imageSize.width,
-                               height: imageSize.height)
+                               width: thumbnailWidth,
+                               height: thumbnailWidth)
         let imageWidth = imageRect.width * CGFloat(newThumbnails.count)
         thumbnailView?.frame = CGRect(x: 0,
                                       y: 0,
                                       width: imageWidth,
-                                      height: thumbnailSrollView!.frame.size.height)
+                                      height: thumbnailWidth)
         thumbnailSrollView?.contentSize = CGSize(width: thumbnailView!.frame.size.width,
                                                  height: 0)
         thumbnailView?.layer.sublayers?.removeAll()
@@ -201,8 +209,8 @@ class ViewController: UIViewController {
         for thumbnail in newThumbnails {
             thumbnail.frame = CGRect(x: offsetX,
                                      y: 0,
-                                     width: imageRect.size.width,
-                                     height: imageRect.size.height)
+                                     width: thumbnailWidth,
+                                     height: thumbnailWidth)
             
             if let sublayers = thumbnailView!.layer.sublayers {
                 var thumbnailLayer = sublayers.filter({ $0.frame.origin.x == offsetX }).first
@@ -259,6 +267,28 @@ class ViewController: UIViewController {
             generateThumbnails()
         default:
             break;
+        }
+    }
+}
+
+extension ViewController {
+    func mixTimelineVideos() {
+        if timeline.segmentVideos.count == 0 {return }
+        
+        let trackId = CMPersistentTrackID()
+        let compositionTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: trackId)
+        var cursorTime = CMTime.zero
+        
+        for segmentVideo in timeline.segmentVideos {
+            let assetTrack = segmentVideo.asset.tracks(withMediaType: .video).first!
+            do {
+                try compositionTrack?.insertTimeRange(segmentVideo.timeRange,
+                                                      of: assetTrack,
+                                                      at: cursorTime)
+            } catch {
+                print("\(error)")
+            }
+            cursorTime = cursorTime + segmentVideo.asset.duration
         }
     }
 }
