@@ -7,6 +7,7 @@
 
 import UIKit
 import AVFoundation
+import Vision
 
 var PlayerItemStatusContext = 0
 
@@ -16,6 +17,7 @@ class ViewController: UIViewController {
     let thumbnailWidth: CGFloat = 50
     let composition = AVMutableComposition()
     var timeline = PCutTimeline()
+    let videoOutput = AVPlayerItemVideoOutput()
     
     var player: AVPlayer?
     var timeSlider: UISlider?
@@ -23,6 +25,10 @@ class ViewController: UIViewController {
     var thumbnailSrollView: UIScrollView?
     var thumbnailView: PCutThumbnailView?
     var playerItem: AVPlayerItem?
+    var detectedFaceRectangleShapeLayer: CAShapeLayer?
+    var trackingRequests: [VNTrackObjectRequest]?
+    var detectionRequests: [VNDetectFaceRectanglesRequest]?
+    var playerLayer: AVPlayerLayer?
     
     /// timeline scale
     var currentTimeScale: Double = 1
@@ -33,13 +39,15 @@ class ViewController: UIViewController {
     /// frame collections on the screen
     var screenThumbnails = [PCutThumbnail]()
     
+    lazy var sequenceRequestHandler = VNSequenceRequestHandler()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = UIColor.black
         // NOTE: 这里的 timeScale 为缩放倍数，timeScale 增大说明在执行时间轴放大操作，需要抽出粒度更细的帧，反之说明在执行时间轴缩小操作，需要抽出粒度更粗的帧。
                 
-        let videoUrl_0 = Bundle.main.url(forResource: "test_video", withExtension: "mov")
+        let videoUrl_0 = Bundle.main.url(forResource: "test_video1", withExtension: "mov")
         let videoAsset_0 = AVAsset(url: videoUrl_0!)
         let videoUrl_1 = Bundle.main.url(forResource: "test_video_2", withExtension: "mov")
         let videoAsset_1 = AVAsset(url: videoUrl_1!)
@@ -53,17 +61,24 @@ class ViewController: UIViewController {
         
         playerItem = AVPlayerItem(asset: self.composition)
         player = AVPlayer(playerItem: playerItem)
-        let playerLayer = AVPlayerLayer(player: player!)
-        playerLayer.frame = CGRect(x: 0, y: 45, width: view.bounds.width, height: view.bounds.height/3)
-        view.layer.addSublayer(playerLayer)
+        playerLayer = AVPlayerLayer(player: player!)
+        playerLayer!.frame = CGRect(x: 0, y: 45, width: view.bounds.width, height: view.bounds.height/3)
+        view.layer.addSublayer(playerLayer!)
         
+        player?.currentItem?.add(videoOutput)
+        
+        let displayLink = CADisplayLink(target: self, selector: #selector(ViewController.displayLinkRefresh))
+        displayLink.add(to: .main, forMode: .common)
         
         playerItem!.addObserver(self,
                                 forKeyPath: "status",
                                 options: NSKeyValueObservingOptions.initial,
                                 context: &PlayerItemStatusContext)
         
-        timeSlider = UISlider(frame: CGRect(x: 50, y: playerLayer.frame.size.height + playerLayer.frame.origin.y, width: UIScreen.main.bounds.width - 100, height: 50))
+        timeSlider = UISlider(frame: CGRect(x: 50,
+                                            y: playerLayer!.frame.size.height + playerLayer!.frame.origin.y,
+                                            width: UIScreen.main.bounds.width - 100,
+                                            height: 50))
         view.addSubview(timeSlider!)
         timeSlider!.minimumValue = 0
         timeSlider!.maximumValue = 1;
@@ -109,6 +124,42 @@ class ViewController: UIViewController {
         durationLabel.sizeToFit()
         durationLabel.frame = CGRect(x: (UIScreen.main.bounds.width - durationLabel.frame.size.width) / 2, y: 20, width: durationLabel.frame.size.width, height: durationLabel.frame.size.height)
         view.addSubview(durationLabel)
+        
+        let faceRectangleShapeLayer = CAShapeLayer()
+        faceRectangleShapeLayer.bounds = playerLayer!.bounds
+        faceRectangleShapeLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        faceRectangleShapeLayer.fillColor = nil
+//        faceRectangleShapeLayer.position = faceRectangleShapeLayer.bounds.origin
+        faceRectangleShapeLayer.strokeColor = UIColor.green.cgColor
+        faceRectangleShapeLayer.lineWidth = 2
+        faceRectangleShapeLayer.shadowOpacity = 0.7
+        faceRectangleShapeLayer.shadowRadius = 5
+        detectedFaceRectangleShapeLayer = faceRectangleShapeLayer
+        view.layer.addSublayer(detectedFaceRectangleShapeLayer!)
+        // TODO: 坐标问题
+        
+        var requests = [VNTrackObjectRequest]()
+        let faceDetectionRequest = VNDetectFaceRectanglesRequest(completionHandler: { (request, error) in
+            
+            if error != nil {
+                print("FaceDetection error: \(String(describing: error)).")
+            }
+            
+            guard let faceDetectionRequest = request as? VNDetectFaceRectanglesRequest,
+                  let results = faceDetectionRequest.results else {
+                    return
+            }
+            DispatchQueue.main.async {
+                // Add the observations to the tracking list
+                for observation in results {
+                    let faceTrackingRequest = VNTrackObjectRequest(detectedObjectObservation: observation)
+                    requests.append(faceTrackingRequest)
+                }
+                self.trackingRequests = requests
+            }
+        })
+        detectionRequests = [faceDetectionRequest]
+        sequenceRequestHandler = VNSequenceRequestHandler()
     }
     
     override func observeValue(forKeyPath keyPath: String?,
@@ -123,6 +174,141 @@ class ViewController: UIViewController {
                 generateThumbnails()
             }
         }
+    }
+    
+    @objc
+    func displayLinkRefresh() {
+        let itemTime = videoOutput.itemTime(forHostTime: CACurrentMediaTime())
+        if videoOutput.hasNewPixelBuffer(forItemTime: itemTime) {
+            guard let pixelBuffer = videoOutput.copyPixelBuffer(forItemTime: itemTime, itemTimeForDisplay: nil) else {
+                return
+            }
+            pixelBufferRefresh(pixelBuffer)
+        }
+    }
+    
+    func pixelBufferRefresh(_ pixelBuffer: CVPixelBuffer) {
+        guard let requests = self.trackingRequests, !requests.isEmpty else {
+            // No tracking object detected, so perform initial detection
+            let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer,
+                                                            orientation: .up,
+                                                            options: [:])
+            
+            do {
+                guard let detectRequests = self.detectionRequests else {
+                    return
+                }
+                try imageRequestHandler.perform(detectRequests)
+            } catch let error as NSError {
+                NSLog("Failed to perform FaceRectangleRequest: %@", error)
+            }
+            return
+        }
+        
+        do {
+            try self.sequenceRequestHandler.perform(requests,
+                                                    on: pixelBuffer,
+                                                    orientation: .up)
+        } catch let error as NSError {
+            NSLog("Failed to perform SequenceRequest: %@", error)
+        }
+        
+        // Setup the next round of tracking.
+        var newTrackingRequests = [VNTrackObjectRequest]()
+        for trackingRequest in requests {
+            
+            guard let results = trackingRequest.results else {
+                return
+            }
+            
+            guard let observation = results[0] as? VNDetectedObjectObservation else {
+                return
+            }
+            
+            if !trackingRequest.isLastFrame {
+                if observation.confidence > 0.3 {
+                    trackingRequest.inputObservation = observation
+                } else {
+                    trackingRequest.isLastFrame = true
+                }
+                newTrackingRequests.append(trackingRequest)
+            }
+        }
+        self.trackingRequests = newTrackingRequests
+        
+        if newTrackingRequests.isEmpty {
+            // Nothing to track, so abort.
+            return
+        }
+        
+        // Perform face landmark tracking on detected faces.
+        var faceLandmarkRequests = [VNDetectFaceLandmarksRequest]()
+        
+        // Perform landmark detection on tracked faces.
+        for trackingRequest in newTrackingRequests {
+            
+            let faceLandmarksRequest = VNDetectFaceLandmarksRequest(completionHandler: { (request, error) in
+                
+                if error != nil {
+                    print("FaceLandmarks error: \(String(describing: error)).")
+                }
+                
+                guard let landmarksRequest = request as? VNDetectFaceLandmarksRequest,
+                      let results = landmarksRequest.results else {
+                        return
+                }
+                
+                // Perform all UI updates (drawing) on the main queue, not the background queue on which this handler is being called.
+                DispatchQueue.main.async {
+                    self.drawFaceObservations(results)
+                }
+            })
+            
+            guard let trackingResults = trackingRequest.results else {
+                return
+            }
+            
+            guard let observation = trackingResults[0] as? VNDetectedObjectObservation else {
+                return
+            }
+            let faceObservation = VNFaceObservation(boundingBox: observation.boundingBox)
+            faceLandmarksRequest.inputFaceObservations = [faceObservation]
+            
+            // Continue to track detected facial landmarks.
+            faceLandmarkRequests.append(faceLandmarksRequest)
+            
+            let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer,
+                                                            orientation: .up,
+                                                            options: [:])
+            
+            do {
+                try imageRequestHandler.perform(faceLandmarkRequests)
+            } catch let error as NSError {
+                NSLog("Failed to perform FaceLandmarkRequest: %@", error)
+            }
+        }
+    }
+    
+    fileprivate func drawFaceObservations(_ faceObservations: [VNFaceObservation]) {
+        CATransaction.begin()
+        
+        CATransaction.setValue(NSNumber(value: true), forKey: kCATransactionDisableActions)
+        let faceRectanglePath = CGMutablePath()
+        for faceObservation in faceObservations {
+            self.addIndicators(to: faceRectanglePath,
+                               for: faceObservation)
+        }
+        
+        detectedFaceRectangleShapeLayer?.path = faceRectanglePath
+                
+        CATransaction.commit()
+    }
+    
+    fileprivate func addIndicators(to faceRectanglePath: CGMutablePath, for faceObservation: VNFaceObservation) {
+        let faceBounds = VNImageRectForNormalizedRect(faceObservation.boundingBox,
+                                                      Int(playerLayer!.bounds.size.width),
+                                                      Int(playerLayer!.bounds.size.width))
+        faceRectanglePath.addRect(faceBounds)
     }
     
     func thumbnailCount() -> Int {
