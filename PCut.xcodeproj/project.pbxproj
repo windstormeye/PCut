@@ -15,6 +15,7 @@
 		0C3E96CA272B896300B96EAB /* PCutTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3E96C9272B896300B96EAB /* PCutTimeline.swift */; };
 		0C3E96CC272B8A2E00B96EAB /* test_video_2.mov in Resources */ = {isa = PBXBuildFile; fileRef = 0C3E96CB272B8A2E00B96EAB /* test_video_2.mov */; };
 		0CE3FE83272EE8B3000E61C0 /* test_video1.mov in Resources */ = {isa = PBXBuildFile; fileRef = 0CE3FE82272EE8B3000E61C0 /* test_video1.mov */; };
+		0CE3FE86272F840B000E61C0 /* PCutPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE3FE85272F840B000E61C0 /* PCutPlayer.swift */; };
 		0CF6F4322721B0E7008034FC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF6F4312721B0E7008034FC /* AppDelegate.swift */; };
 		0CF6F4342721B0E7008034FC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF6F4332721B0E7008034FC /* SceneDelegate.swift */; };
 		0CF6F4362721B0E7008034FC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF6F4352721B0E7008034FC /* ViewController.swift */; };
@@ -34,6 +35,7 @@
 		0C3E96C9272B896300B96EAB /* PCutTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutTimeline.swift; sourceTree = "<group>"; };
 		0C3E96CB272B8A2E00B96EAB /* test_video_2.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = test_video_2.mov; sourceTree = "<group>"; };
 		0CE3FE82272EE8B3000E61C0 /* test_video1.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = test_video1.mov; sourceTree = "<group>"; };
+		0CE3FE85272F840B000E61C0 /* PCutPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutPlayer.swift; sourceTree = "<group>"; };
 		0CF6F42E2721B0E7008034FC /* PCut.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PCut.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0CF6F4312721B0E7008034FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0CF6F4332721B0E7008034FC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -60,7 +62,9 @@
 		0C3E96C0272AF40100B96EAB /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				0C3E96BE272AF3B800B96EAB /* PCutThumbnailView.swift */,
+				0CE3FE89272F8497000E61C0 /* Thumbnail */,
+				0CE3FE87272F845B000E61C0 /* Timeline */,
+				0CE3FE84272F8403000E61C0 /* Player */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -96,6 +100,37 @@
 				0C3E96C9272B896300B96EAB /* PCutTimeline.swift */,
 			);
 			path = Timeline;
+			sourceTree = "<group>";
+		};
+		0CE3FE84272F8403000E61C0 /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				0CE3FE85272F840B000E61C0 /* PCutPlayer.swift */,
+				0CE3FE88272F846B000E61C0 /* PlayerControl */,
+			);
+			path = Player;
+			sourceTree = "<group>";
+		};
+		0CE3FE87272F845B000E61C0 /* Timeline */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Timeline;
+			sourceTree = "<group>";
+		};
+		0CE3FE88272F846B000E61C0 /* PlayerControl */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = PlayerControl;
+			sourceTree = "<group>";
+		};
+		0CE3FE89272F8497000E61C0 /* Thumbnail */ = {
+			isa = PBXGroup;
+			children = (
+				0C3E96BE272AF3B800B96EAB /* PCutThumbnailView.swift */,
+			);
+			path = Thumbnail;
 			sourceTree = "<group>";
 		};
 		0CF6F4252721B0E7008034FC = {
@@ -223,6 +258,7 @@
 				0CF6F4362721B0E7008034FC /* ViewController.swift in Sources */,
 				0C3E96CA272B896300B96EAB /* PCutTimeline.swift in Sources */,
 				0CF6F4322721B0E7008034FC /* AppDelegate.swift in Sources */,
+				0CE3FE86272F840B000E61C0 /* PCutPlayer.swift in Sources */,
 				0C3E96BF272AF3B800B96EAB /* PCutThumbnailView.swift in Sources */,
 				0CF6F44D2724FDB1008034FC /* PCutThumbnail.swift in Sources */,
 				0C3E96C2272AF42400B96EAB /* PCutSegment.swift in Sources */,

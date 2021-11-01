@@ -31,6 +31,8 @@ class ViewController: UIViewController {
     var playerLayer: AVPlayerLayer?
     var emoji: UILabel?
     
+    var core: PJCutCore?
+    
     /// timeline scale
     var currentTimeScale: Double = 1
     /// segment speed
@@ -46,8 +48,10 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         
         view.backgroundColor = UIColor.black
-        // NOTE: 这里的 timeScale 为缩放倍数，timeScale 增大说明在执行时间轴放大操作，需要抽出粒度更细的帧，反之说明在执行时间轴缩小操作，需要抽出粒度更粗的帧。
-                
+        
+        core = PJCutCore()
+        
+        
         let videoUrl_0 = Bundle.main.url(forResource: "test_video1", withExtension: "mov")
         let videoAsset_0 = AVAsset(url: videoUrl_0!)
         let videoUrl_1 = Bundle.main.url(forResource: "test_video_2", withExtension: "mov")
@@ -317,11 +321,11 @@ class ViewController: UIViewController {
         var faceBounds = VNImageRectForNormalizedRect(faceObservation.boundingBox,
                                                       Int(playerLayer!.bounds.size.width),
                                                       Int(playerLayer!.bounds.size.width))
-        faceBounds.origin.y = -faceBounds.origin.y/5
+//        faceBounds.origin.y = -faceBounds.origin.y/5
         
         faceRectanglePath.addRect(faceBounds)
         emoji?.frame = CGRect(x: faceBounds.origin.x,
-                              y: faceBounds.origin.y + emoji!.bounds.size.height + 50,
+                              y: faceBounds.origin.y,
                               width: emoji!.bounds.size.width,
                               height: emoji!.bounds.size.height)
     }
