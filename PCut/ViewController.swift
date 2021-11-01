@@ -10,8 +10,6 @@ import AVFoundation
 import Vision
 import Photos
 
-var PlayerItemStatusContext = 0
-
 
 class ViewController: UIViewController {
 
@@ -20,19 +18,17 @@ class ViewController: UIViewController {
     var timeline = PCutTimeline()
     let videoOutput = AVPlayerItemVideoOutput()
     
-    var player: AVPlayer?
     var timeSlider: UISlider?
     var thumbnailGenarater: AVAssetImageGenerator?
     var thumbnailSrollView: UIScrollView?
     var thumbnailView: PCutThumbnailView?
-    var playerItem: AVPlayerItem?
     var detectedFaceRectangleShapeLayer: CAShapeLayer?
     var trackingRequests: [VNTrackObjectRequest]?
     var detectionRequests: [VNDetectFaceRectanglesRequest]?
     var playerLayer: AVPlayerLayer?
     var emoji: UILabel?
     
-    var core: PJCutCore?
+    var core = PJCutCore()
     
     /// timeline scale
     var currentTimeScale: Double = 1
@@ -50,9 +46,6 @@ class ViewController: UIViewController {
         
         view.backgroundColor = UIColor.black
         
-        core = PJCutCore()
-        
-        
         let videoUrl_0 = Bundle.main.url(forResource: "test_video1", withExtension: "mov")
         let videoAsset_0 = AVAsset(url: videoUrl_0!)
         let videoUrl_1 = Bundle.main.url(forResource: "test_video_2", withExtension: "mov")
@@ -65,21 +58,15 @@ class ViewController: UIViewController {
         
         mixTimelineVideos()
         
-        playerItem = AVPlayerItem(asset: self.composition)
-        player = AVPlayer(playerItem: playerItem)
-        playerLayer = AVPlayerLayer(player: player!)
+        playerLayer = AVPlayerLayer(player: core.avPlayer())
         playerLayer!.frame = CGRect(x: 0, y: 45, width: view.bounds.width, height: view.bounds.height/3)
         view.layer.addSublayer(playerLayer!)
         
-        player?.currentItem?.add(videoOutput)
+        core.avPlayer().currentItem?.add(videoOutput)
+        core.player.delegate = self
         
         let displayLink = CADisplayLink(target: self, selector: #selector(ViewController.displayLinkRefresh))
         displayLink.add(to: .main, forMode: .common)
-        
-        playerItem!.addObserver(self,
-                                forKeyPath: "status",
-                                options: NSKeyValueObservingOptions.initial,
-                                context: &PlayerItemStatusContext)
         
         timeSlider = UISlider(frame: CGRect(x: 50,
                                             y: playerLayer!.frame.size.height + playerLayer!.frame.origin.y,
@@ -99,9 +86,9 @@ class ViewController: UIViewController {
                               for: UIControl.Event.touchUpInside)
         
         // NOTE: 1/30, per frame callback once
-        player!.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: DispatchQueue.main) { currentTime in
+        core.avPlayer().addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: DispatchQueue.main) { currentTime in
             let currentSecondes = CMTimeGetSeconds(currentTime)
-            let duraion = self.player!.currentItem!.asset.duration
+            let duraion = self.core.avPlayer().currentItem!.asset.duration
             let durationSeconds = CMTimeGetSeconds(duraion)
             self.timeSlider?.setValue(Float(currentSecondes/durationSeconds), animated: false)
         }
@@ -143,7 +130,6 @@ class ViewController: UIViewController {
                                                 height: playerLayer!.bounds.size.height)
         faceRectangleShapeLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         faceRectangleShapeLayer.fillColor = nil
-//        faceRectangleShapeLayer.position = faceRectangleShapeLayer.bounds.origin
         faceRectangleShapeLayer.strokeColor = UIColor.green.cgColor
         faceRectangleShapeLayer.lineWidth = 2
         faceRectangleShapeLayer.shadowOpacity = 0.7
@@ -176,20 +162,6 @@ class ViewController: UIViewController {
         sequenceRequestHandler = VNSequenceRequestHandler()
         
         exportVideo()
-    }
-    
-    override func observeValue(forKeyPath keyPath: String?,
-                               of object: Any?,
-                               change: [NSKeyValueChangeKey : Any]?,
-                               context: UnsafeMutableRawPointer?) {
-        if context == &PlayerItemStatusContext {
-            let playerItem = object as! AVPlayerItem
-            if playerItem.status == AVPlayerItem.Status.readyToPlay {
-                player?.play()
-                
-                generateThumbnails()
-            }
-        }
     }
     
     @objc
@@ -321,10 +293,9 @@ class ViewController: UIViewController {
     }
     
     fileprivate func addIndicators(to faceRectanglePath: CGMutablePath, for faceObservation: VNFaceObservation) {
-        var faceBounds = VNImageRectForNormalizedRect(faceObservation.boundingBox,
+        let faceBounds = VNImageRectForNormalizedRect(faceObservation.boundingBox,
                                                       Int(playerLayer!.bounds.size.width),
                                                       Int(playerLayer!.bounds.size.width))
-//        faceBounds.origin.y = -faceBounds.origin.y/5
         
         faceRectanglePath.addRect(faceBounds)
         emoji?.frame = CGRect(x: faceBounds.origin.x,
@@ -335,7 +306,7 @@ class ViewController: UIViewController {
     
     func thumbnailCount() -> Int {
         let speed: Double = 1
-        let duration = CMTimeGetSeconds(player!.currentItem!.asset.duration)
+        let duration = CMTimeGetSeconds(core.avPlayer().currentItem!.asset.duration)
         
         return Int(ceil(duration * currentTimeScale / speed))
     }
@@ -346,14 +317,14 @@ class ViewController: UIViewController {
     
     
     func generateThumbnails() {
-        thumbnailGenarater = AVAssetImageGenerator(asset: playerItem!.asset)
+        thumbnailGenarater = AVAssetImageGenerator(asset: core.avPlayer().currentItem!.asset)
         thumbnailGenarater?.maximumSize = CGSize(width: thumbnailWidth, height: thumbnailWidth)
         // NOTE: turn off AVAssetImageGenerator thumbnail generate buffer
         thumbnailGenarater?.requestedTimeToleranceAfter = .zero
         thumbnailGenarater?.requestedTimeToleranceBefore = .zero
         // NOTE: resize video angle
         thumbnailGenarater?.appliesPreferredTrackTransform = true
-        let duration = player!.currentItem!.asset.duration
+        let duration = core.avPlayer().currentItem!.asset.duration
         
         var times = [NSValue]()
         let increment = duration.value / Int64(thumbnailCount())
@@ -443,21 +414,21 @@ class ViewController: UIViewController {
     func sliderChange(slider: UISlider) {
         let sliderValue = slider.value
         
-        let duraion = player!.currentItem!.asset.duration
+        let duraion = core.avPlayer().currentItem!.asset.duration
         let durationSeconds = CMTimeGetSeconds(duraion)
         let currentDurationSeconds = durationSeconds * Float64(sliderValue)
         let currentDuration = CMTimeMakeWithSeconds(currentDurationSeconds, preferredTimescale: duraion.timescale)
-        player?.seek(to: currentDuration)
+        core.avPlayer().seek(to: currentDuration)
     }
     
     @objc
     func sliderBegin(slider: UISlider) {
-        player?.pause()
+        core.avPlayer().pause()
     }
     
     @objc
     func sliderTouchEnd(slider: UISlider) {
-        player?.play()
+        core.avPlayer().play()
     }
     
     @objc
@@ -482,39 +453,36 @@ class ViewController: UIViewController {
 extension ViewController {
     func mixTimelineVideos() {
         if timeline.segmentVideos.count == 0 {return }
-        
-        let trackId = CMPersistentTrackID()
-        let compositionTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: trackId)
         var cursorTime = CMTime.zero
         
         for segmentVideo in timeline.segmentVideos {
-            let assetTrack = segmentVideo.asset.tracks(withMediaType: .video).first!
-            do {
-                try compositionTrack?.insertTimeRange(segmentVideo.timeRange,
-                                                      of: assetTrack,
-                                                      at: cursorTime)
-            } catch {
-                print("\(error)")
-            }
+            core.insertSegmentVideo(insertTime: cursorTime, trackIndex: 0, segmentVideo: segmentVideo)
             cursorTime = cursorTime + segmentVideo.asset.duration
         }
     }
     
     func exportVideo() {
-        let exportSession = AVAssetExportSession(asset: self.composition, presetName: AVAssetExportPresetHighestQuality)
-        exportSession?.timeRange = CMTimeRange(start: playerItem!.reversePlaybackEndTime,
-                                               duration: playerItem!.forwardPlaybackEndTime)
-        exportSession?.outputFileType = exportSession?.supportedFileTypes.first
-        let exportPath = NSTemporaryDirectory().appending("video.mov")
-        let exportUrl = URL(fileURLWithPath: exportPath)
-        exportSession?.outputURL = exportUrl
-        
-        exportSession?.exportAsynchronously {
-            PHPhotoLibrary.shared().performChanges({PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: exportUrl)}) { saved, error in
-                if saved {
-                    print("Saved")
-                }
-            }
-        }
+//        let exportSession = AVAssetExportSession(asset: self.composition, presetName: AVAssetExportPresetHighestQuality)
+//        exportSession?.timeRange = CMTimeRange(start: playerItem!.reversePlaybackEndTime,
+//                                               duration: playerItem!.forwardPlaybackEndTime)
+//        exportSession?.outputFileType = exportSession?.supportedFileTypes.first
+//        let exportPath = NSTemporaryDirectory().appending("video.mov")
+//        let exportUrl = URL(fileURLWithPath: exportPath)
+//        exportSession?.outputURL = exportUrl
+//
+//        exportSession?.exportAsynchronously {
+//            PHPhotoLibrary.shared().performChanges({PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: exportUrl)}) { saved, error in
+//                if saved {
+//                    print("Saved")
+//                }
+//            }
+//        }
+    }
+}
+
+
+extension ViewController: PCutPlayerProtocol {
+    func readyToPlay(_ player: PCutPlayer) {
+        generateThumbnails()
     }
 }

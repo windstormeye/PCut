@@ -8,19 +8,43 @@
 import Foundation
 import AVFoundation
 
-class PCutPlayer {
+protocol PCutPlayerProtocol {
+    func readyToPlay(_ player: PCutPlayer)
+}
+
+extension PCutPlayerProtocol {
+    func readyToPlay(_ player: PCutPlayer) {}
+}
+
+class PCutPlayer: NSObject {
     var player: AVPlayer?
     var duration: CGFloat?
     var size: CGSize?
+    var delegate: PCutPlayerProtocol?
     
-    private var playerItem: AVPlayerItem
+    private var playerItemKVOToken: NSKeyValueObservation?
+    
+    private var playerItem: AVPlayerItem?
 
     
     init(playerItem: AVPlayerItem) {
+        super.init()
+        
+        player = AVPlayer(playerItem: playerItem)
         self.playerItem = playerItem
+        
+        
+        playerItemKVOToken = self.playerItem?.observe(\.status, changeHandler: { _playerItem, value in
+            if (_playerItem.status == .readyToPlay) {
+                self.player?.play()
+                self.delegate?.readyToPlay(self)
+            }
+        })
     }
     
-//    private func 
+    deinit {
+        playerItemKVOToken?.invalidate()
+    }
 }
 
 /// MARK: - Play
