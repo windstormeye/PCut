@@ -8,6 +8,7 @@
 import UIKit
 import AVFoundation
 import Vision
+import Photos
 
 var PlayerItemStatusContext = 0
 
@@ -173,6 +174,8 @@ class ViewController: UIViewController {
         })
         detectionRequests = [faceDetectionRequest]
         sequenceRequestHandler = VNSequenceRequestHandler()
+        
+        exportVideo()
     }
     
     override func observeValue(forKeyPath keyPath: String?,
@@ -494,6 +497,24 @@ extension ViewController {
                 print("\(error)")
             }
             cursorTime = cursorTime + segmentVideo.asset.duration
+        }
+    }
+    
+    func exportVideo() {
+        let exportSession = AVAssetExportSession(asset: self.composition, presetName: AVAssetExportPresetHighestQuality)
+        exportSession?.timeRange = CMTimeRange(start: playerItem!.reversePlaybackEndTime,
+                                               duration: playerItem!.forwardPlaybackEndTime)
+        exportSession?.outputFileType = exportSession?.supportedFileTypes.first
+        let exportPath = NSTemporaryDirectory().appending("video.mov")
+        let exportUrl = URL(fileURLWithPath: exportPath)
+        exportSession?.outputURL = exportUrl
+        
+        exportSession?.exportAsynchronously {
+            PHPhotoLibrary.shared().performChanges({PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: exportUrl)}) { saved, error in
+                if saved {
+                    print("Saved")
+                }
+            }
         }
     }
 }
