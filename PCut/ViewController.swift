@@ -29,6 +29,7 @@ class ViewController: UIViewController {
     var trackingRequests: [VNTrackObjectRequest]?
     var detectionRequests: [VNDetectFaceRectanglesRequest]?
     var playerLayer: AVPlayerLayer?
+    var emoji: UILabel?
     
     /// timeline scale
     var currentTimeScale: Double = 1
@@ -117,6 +118,11 @@ class ViewController: UIViewController {
         thumbnailView?.layer.cornerRadius = 4
         thumbnailSrollView?.addSubview(thumbnailView!)
         
+        emoji = UILabel()
+        emoji?.text = "😆"
+        emoji?.font = UIFont.boldSystemFont(ofSize: 100)
+        emoji?.sizeToFit()
+        view.addSubview(emoji!)
         
         let durationLabel = UILabel()
         durationLabel.text = String(format: "%.2fs", CMTimeGetSeconds(self.composition.duration))
@@ -126,7 +132,10 @@ class ViewController: UIViewController {
         view.addSubview(durationLabel)
         
         let faceRectangleShapeLayer = CAShapeLayer()
-        faceRectangleShapeLayer.bounds = playerLayer!.bounds
+        faceRectangleShapeLayer.bounds = CGRect(x: -playerLayer!.bounds.size.width/2,
+                                                y: -playerLayer!.bounds.size.height,
+                                                width: playerLayer!.bounds.size.width,
+                                                height: playerLayer!.bounds.size.height)
         faceRectangleShapeLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         faceRectangleShapeLayer.fillColor = nil
 //        faceRectangleShapeLayer.position = faceRectangleShapeLayer.bounds.origin
@@ -305,10 +314,16 @@ class ViewController: UIViewController {
     }
     
     fileprivate func addIndicators(to faceRectanglePath: CGMutablePath, for faceObservation: VNFaceObservation) {
-        let faceBounds = VNImageRectForNormalizedRect(faceObservation.boundingBox,
+        var faceBounds = VNImageRectForNormalizedRect(faceObservation.boundingBox,
                                                       Int(playerLayer!.bounds.size.width),
                                                       Int(playerLayer!.bounds.size.width))
+        faceBounds.origin.y = -faceBounds.origin.y/5
+        
         faceRectanglePath.addRect(faceBounds)
+        emoji?.frame = CGRect(x: faceBounds.origin.x,
+                              y: faceBounds.origin.y + emoji!.bounds.size.height + 50,
+                              width: emoji!.bounds.size.width,
+                              height: emoji!.bounds.size.height)
     }
     
     func thumbnailCount() -> Int {
