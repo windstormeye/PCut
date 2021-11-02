@@ -11,6 +11,7 @@ import AVFoundation
 class PCutThumbnail: CALayer {
     var time: CMTime = CMTime.zero
     var image: CGImage?
+    var id: String?
     
     override init() {
         super.init()
@@ -20,10 +21,11 @@ class PCutThumbnail: CALayer {
         fatalError("init(coder:) has not been implemented")
     }
     
-    convenience init(time: CMTime, image: CGImage) {
+    convenience init(id: UUID, time: CMTime, image: CGImage) {
         self.init()
         contents = image
         
+        self.id = id.uuidString + "\(CMTimeGetSeconds(time))"
         self.time = time
         self.image = image
     }

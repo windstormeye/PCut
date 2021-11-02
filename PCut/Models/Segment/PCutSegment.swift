@@ -12,7 +12,7 @@ protocol PCutSegment {
     var id: UUID { get }
 }
 
-struct PCutSegmentVideo: PCutSegment {
+struct PCutVideoSegment: PCutSegment {
     let id: UUID = UUID()
     var asset: AVAsset
     var timeRange: CMTimeRange

@@ -9,5 +9,5 @@ import Foundation
 
 
 struct PCutTimeline {
-    var segmentVideos = [PCutSegmentVideo]()
+    var segmentVideos = [PCutVideoSegment]()
 }

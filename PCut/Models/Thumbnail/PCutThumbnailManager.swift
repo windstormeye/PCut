@@ -25,14 +25,14 @@ extension PCutThumbnailManager {
 
 /// MARK: - Helper
 extension PCutThumbnailManager {
-    func thumbnailCount() -> Int {
+    func thumbnailCount(_ duration: CMTime) -> Int {
         let speed: Double = 1
-        let duration = CMTimeGetSeconds(core.avPlayer().currentItem!.asset.duration)
+        let duration = CMTimeGetSeconds(duration)
         
         return Int(ceil(duration * core.currentTimeScale / speed))
     }
     
-    func containTime(_ time: CMTime) -> Bool {
-        return thumbnails.filter { return $0.time == time }.count > 0
+    func containTime(_ thumbnail: PCutThumbnail) -> Bool {
+        return thumbnails.filter { return $0.id == thumbnail.id }.count > 0
     }
 }

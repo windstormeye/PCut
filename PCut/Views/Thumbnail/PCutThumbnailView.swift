@@ -13,7 +13,9 @@ class PCutThumbnailView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        
+        layer.borderColor = UIColor.white.cgColor
+        layer.borderWidth = 0.5
+        layer.cornerRadius = 4
     }
     
     required init?(coder: NSCoder) {

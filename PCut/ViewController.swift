@@ -18,14 +18,13 @@ class ViewController: UIViewController {
     let videoOutput = AVPlayerItemVideoOutput()
     
     var timeSlider: UISlider?
-    var thumbnailGenarater: AVAssetImageGenerator?
     var thumbnailSrollView: UIScrollView?
-    var thumbnailView: PCutThumbnailView?
     var detectedFaceRectangleShapeLayer: CAShapeLayer?
     var trackingRequests: [VNTrackObjectRequest]?
     var detectionRequests: [VNDetectFaceRectanglesRequest]?
     var emoji: UILabel?
     var thumbnailManager: PCutThumbnailManager?
+    var videoTrackSegmentViews = [PCutVideoTrackSegmentView]()
     
     var core = PCutCore()
     /// frame data source
@@ -45,8 +44,10 @@ class ViewController: UIViewController {
         let videoUrl_1 = Bundle.main.url(forResource: "test_video_2", withExtension: "mov")
         let videoAsset_1 = AVAsset(url: videoUrl_1!)
         
-        let videoSegment_0 = PCutSegmentVideo(asset: videoAsset_0, timeRange: CMTimeRange(start: .zero, duration: videoAsset_0.duration))
-        let videoSegment_1 = PCutSegmentVideo(asset: videoAsset_1, timeRange: CMTimeRange(start: .zero, duration: videoAsset_1.duration))
+        let videoSegment_0 = PCutVideoSegment(asset: videoAsset_0,
+                                              timeRange: CMTimeRange(start: .zero, duration: videoAsset_0.duration))
+        let videoSegment_1 = PCutVideoSegment(asset: videoAsset_1,
+                                              timeRange: CMTimeRange(start: .zero, duration: videoAsset_1.duration))
         core.timeline.segmentVideos.append(videoSegment_0)
         core.timeline.segmentVideos.append(videoSegment_1)
         
@@ -88,7 +89,10 @@ class ViewController: UIViewController {
             self.timeSlider?.setValue(Float(currentSecondes/durationSeconds), animated: false)
         }
         
-        thumbnailSrollView = UIScrollView(frame: CGRect(x: 0, y: 500, width: UIScreen.main.bounds.width, height: thumbnailWidth))
+        thumbnailSrollView = UIScrollView(frame: CGRect(x: 0,
+                                                        y: 500,
+                                                        width: UIScreen.main.bounds.width,
+                                                        height: thumbnailWidth))
         thumbnailSrollView?.showsVerticalScrollIndicator = false
         thumbnailSrollView?.showsHorizontalScrollIndicator = false
         view.addSubview(thumbnailSrollView!)
@@ -96,14 +100,6 @@ class ViewController: UIViewController {
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchGesture(gesture:)))
         thumbnailSrollView?.addGestureRecognizer(pinchGesture)
         thumbnailSrollView?.panGestureRecognizer.require(toFail: pinchGesture)
-        
-        
-        thumbnailView = PCutThumbnailView()
-        thumbnailView?.frame = CGRect(x: 0, y: 0, width: 0, height: thumbnailSrollView!.frame.size.height)
-        thumbnailView?.layer.borderColor = UIColor.white.cgColor
-        thumbnailView?.layer.borderWidth = 0.5
-        thumbnailView?.layer.cornerRadius = 4
-        thumbnailSrollView?.addSubview(thumbnailView!)
         
         emoji = UILabel()
         emoji?.text = "😆"
@@ -156,7 +152,14 @@ class ViewController: UIViewController {
         detectionRequests = [faceDetectionRequest]
         sequenceRequestHandler = VNSequenceRequestHandler()
         
-        exportVideo()
+        let videoTrackSegmentView_0 = PCutVideoTrackSegmentView(videoSegment: videoSegment_0)
+        let videoTrackSegmentView_1 = PCutVideoTrackSegmentView(videoSegment: videoSegment_1)
+        videoTrackSegmentViews.append(videoTrackSegmentView_0)
+        videoTrackSegmentViews.append(videoTrackSegmentView_1)
+        for segmentView in videoTrackSegmentViews {
+            thumbnailSrollView?.addSubview(segmentView)
+            generateThumbnails(segmentView)
+        }
     }
     
     @objc
@@ -300,25 +303,23 @@ class ViewController: UIViewController {
     }
     
     
-    func generateThumbnails() {
-        thumbnailGenarater = AVAssetImageGenerator(asset: core.avPlayer().currentItem!.asset)
-        thumbnailGenarater?.maximumSize = CGSize(width: thumbnailWidth, height: thumbnailWidth)
+    func generateThumbnails(_ videoSegmentView: PCutVideoTrackSegmentView) {
+        let thumbnailGenarater = AVAssetImageGenerator(asset: videoSegmentView.videoSegment!.asset)
+        thumbnailGenarater.maximumSize = CGSize(width: thumbnailWidth, height: thumbnailWidth)
         // NOTE: turn off AVAssetImageGenerator thumbnail generate buffer
-        thumbnailGenarater?.requestedTimeToleranceAfter = .zero
-        thumbnailGenarater?.requestedTimeToleranceBefore = .zero
+        thumbnailGenarater.requestedTimeToleranceAfter = .zero
+        thumbnailGenarater.requestedTimeToleranceBefore = .zero
         // NOTE: resize video angle
-        thumbnailGenarater?.appliesPreferredTrackTransform = true
-        let duration = core.avPlayer().currentItem!.asset.duration
+        thumbnailGenarater.appliesPreferredTrackTransform = true
+        let duration = videoSegmentView.videoSegment!.asset.duration
         
         var times = [NSValue]()
-        let increment = duration.value / Int64(thumbnailManager!.thumbnailCount())
+        let increment = duration.value / Int64(thumbnailManager!.thumbnailCount(videoSegmentView.videoSegment!.asset.duration))
         var currentValue = Int64(2 * duration.timescale)
         while currentValue <= duration.value {
             let time = CMTime(value: CMTimeValue(currentValue), timescale: duration.timescale)
-            
-            if (!thumbnailManager!.containTime(time)) {
-                times.append(NSValue(time: time))
-            }
+            // TODO: 优化下少抽几帧
+            times.append(NSValue(time: time))
             
             currentValue += increment
         }
@@ -326,11 +327,14 @@ class ViewController: UIViewController {
         var currentThumbnails = [PCutThumbnail]()
         
         DispatchQueue.global(qos: .background).async {
-            self.thumbnailGenarater?.generateCGImagesAsynchronously(forTimes: times, completionHandler: { requestTime, thumbnailImage, actualTime, generateResult, error in
+            thumbnailGenarater.generateCGImagesAsynchronously(forTimes: times, completionHandler: { requestTime, thumbnailImage, actualTime, generateResult, error in
                 switch generateResult {
                 case .succeeded:
-                    let thumbnail = PCutThumbnail(time: actualTime, image: thumbnailImage!)
-                    if (!self.thumbnailManager!.containTime(thumbnail.time)) {
+                    let thumbnail = PCutThumbnail(id:videoSegmentView.videoSegment!.id,
+                                                  time: actualTime,
+                                                  image: thumbnailImage!)
+                    thumbnail.frame.size = CGSize(width: self.thumbnailWidth, height: self.thumbnailWidth)
+                    if (!self.thumbnailManager!.containTime(thumbnail)) {
                         self.thumbnails.append(thumbnail)
                     }
                     currentThumbnails.append(thumbnail)
@@ -347,47 +351,51 @@ class ViewController: UIViewController {
                 if (generateCount == 0) {
     //                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "PCutThumbnailGeneratorNotification"), object: nil)
                     DispatchQueue.main.async {
-                        self.refreshThumbnail(currentThumbnails)
+                        self.refreshThumbnail(newThumbnails: currentThumbnails,
+                                              segmentView: videoSegmentView)
                     }
                 }
             })
         }
     }
     
-    func refreshThumbnail(_ newThumbnails: [PCutThumbnail]) {
+    func refreshThumbnail(newThumbnails: [PCutThumbnail],
+                          segmentView: PCutVideoTrackSegmentView) {
         var offsetX: CGFloat = 0
-        let imageRect = CGRect(x: offsetX,
-                               y: 0,
-                               width: thumbnailWidth,
-                               height: thumbnailWidth)
-        let imageWidth = imageRect.width * CGFloat(newThumbnails.count)
-        thumbnailView?.frame = CGRect(x: 0,
-                                      y: 0,
-                                      width: imageWidth,
-                                      height: thumbnailWidth)
-        thumbnailSrollView?.contentSize = CGSize(width: thumbnailView!.frame.size.width,
-                                                 height: 0)
-        thumbnailView?.layer.sublayers?.removeAll()
+        let imageSize = CGSize(width: thumbnailWidth, height: thumbnailWidth)
+        let imageWidth = imageSize.width * CGFloat(newThumbnails.count)
+        segmentView.frame.size = CGSize(width: imageWidth, height: thumbnailWidth)
+        segmentView.thumbnailView.layer.sublayers?.removeAll()
         
         for thumbnail in newThumbnails {
-            thumbnail.frame = CGRect(x: offsetX,
-                                     y: 0,
-                                     width: thumbnailWidth,
-                                     height: thumbnailWidth)
+            thumbnail.frame.origin = CGPoint(x: offsetX, y: 0)
             
-            if let sublayers = thumbnailView!.layer.sublayers {
+            if let sublayers = segmentView.thumbnailView.layer.sublayers {
                 var thumbnailLayer = sublayers.filter({ $0.frame.origin.x == offsetX }).first
                 if (thumbnailLayer != nil) {
                     thumbnailLayer = thumbnail
                 } else {
-                    thumbnailView?.layer.addSublayer(thumbnail)
+                    segmentView.thumbnailView.layer.addSublayer(thumbnail)
                 }
             } else {
-                thumbnailView?.layer.addSublayer(thumbnail)
+                segmentView.thumbnailView.layer.addSublayer(thumbnail)
             }
             
-            offsetX += imageRect.size.width
+            offsetX += imageSize.width
         }
+        refreshUI()
+    }
+    
+    func refreshUI() {
+        var offsetX: CGFloat = 0
+        var totalWidth: CGFloat = 0
+        let space: CGFloat = 5
+        for subView in thumbnailSrollView!.subviews {
+            subView.frame.origin = CGPoint(x: offsetX, y: 0)
+            totalWidth += (subView.frame.size.width + space)
+            offsetX += (totalWidth + space)
+        }
+        thumbnailSrollView?.contentSize = CGSize(width: totalWidth, height: 0)
     }
     
     func containSublayer(_ offsetX: CGFloat) -> Bool {
@@ -427,7 +435,7 @@ class ViewController: UIViewController {
             if (core.currentTimeScale > 10) {
                 core.currentTimeScale = 10
             }
-            generateThumbnails()
+//            generateThumbnails()
         default:
             break;
         }
@@ -444,30 +452,12 @@ extension ViewController {
             cursorTime = cursorTime + segmentVideo.asset.duration
         }
     }
-    
-    func exportVideo() {
-//        let exportSession = AVAssetExportSession(asset: self.composition, presetName: AVAssetExportPresetHighestQuality)
-//        exportSession?.timeRange = CMTimeRange(start: playerItem!.reversePlaybackEndTime,
-//                                               duration: playerItem!.forwardPlaybackEndTime)
-//        exportSession?.outputFileType = exportSession?.supportedFileTypes.first
-//        let exportPath = NSTemporaryDirectory().appending("video.mov")
-//        let exportUrl = URL(fileURLWithPath: exportPath)
-//        exportSession?.outputURL = exportUrl
-//
-//        exportSession?.exportAsynchronously {
-//            PHPhotoLibrary.shared().performChanges({PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: exportUrl)}) { saved, error in
-//                if saved {
-//                    print("Saved")
-//                }
-//            }
-//        }
-    }
 }
 
-
+/// MARK: - PCutPlayerProtocol
 extension ViewController: PCutPlayerProtocol {
     func readyToPlay(_ player: PCutPlayer) {
-        generateThumbnails()
+//        generateThumbnails()
     }
 }
 
