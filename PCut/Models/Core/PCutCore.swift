@@ -10,10 +10,15 @@ import CoreMedia
 import AVFoundation
 import Photos
 
-class PJCutCore {
+class PCutCore {
     var currentTime = CMTime.zero
-    var player: PCutPlayer
-    var timeline: PCutTimeline?
+    var player: PCutPlayer    
+    var timeline = PCutTimeline()
+    
+    /// timeline scale
+    var currentTimeScale: Double = 1
+    /// segment speed
+    var currentSpeed: Double = 1
     
     private var playerItem: AVPlayerItem?
     private let composition = AVMutableComposition()
@@ -35,7 +40,7 @@ class PJCutCore {
 }
 
 /// MARK: - Mix Segments
-extension PJCutCore {
+extension PCutCore {
     func insertSegmentVideo(insertTime: CMTime,
                             trackIndex: Int,
                             segmentVideo: PCutSegmentVideo) {
@@ -51,7 +56,7 @@ extension PJCutCore {
 }
 
 /// MARK: - Export Videos
-extension PJCutCore {
+extension PCutCore {
     func exportVideo() {
         let exportSession = AVAssetExportSession(asset: self.composition, presetName: AVAssetExportPresetHighestQuality)
         exportSession?.timeRange = CMTimeRange(start: playerItem!.reversePlaybackEndTime,

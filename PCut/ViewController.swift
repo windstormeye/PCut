@@ -15,7 +15,6 @@ class ViewController: UIViewController {
 
     let thumbnailWidth: CGFloat = 50
     let composition = AVMutableComposition()
-    var timeline = PCutTimeline()
     let videoOutput = AVPlayerItemVideoOutput()
     
     var timeSlider: UISlider?
@@ -25,15 +24,10 @@ class ViewController: UIViewController {
     var detectedFaceRectangleShapeLayer: CAShapeLayer?
     var trackingRequests: [VNTrackObjectRequest]?
     var detectionRequests: [VNDetectFaceRectanglesRequest]?
-    var playerLayer: AVPlayerLayer?
     var emoji: UILabel?
+    var thumbnailManager: PCutThumbnailManager?
     
-    var core = PJCutCore()
-    
-    /// timeline scale
-    var currentTimeScale: Double = 1
-    /// segment speed
-    var currentSpeed: Double = 1
+    var core = PCutCore()
     /// frame data source
     var thumbnails = [PCutThumbnail]()
     /// frame collections on the screen
@@ -53,23 +47,24 @@ class ViewController: UIViewController {
         
         let videoSegment_0 = PCutSegmentVideo(asset: videoAsset_0, timeRange: CMTimeRange(start: .zero, duration: videoAsset_0.duration))
         let videoSegment_1 = PCutSegmentVideo(asset: videoAsset_1, timeRange: CMTimeRange(start: .zero, duration: videoAsset_1.duration))
-        timeline.segmentVideos.append(videoSegment_0)
-        timeline.segmentVideos.append(videoSegment_1)
+        core.timeline.segmentVideos.append(videoSegment_0)
+        core.timeline.segmentVideos.append(videoSegment_1)
         
         mixTimelineVideos()
         
-        playerLayer = AVPlayerLayer(player: core.avPlayer())
-        playerLayer!.frame = CGRect(x: 0, y: 45, width: view.bounds.width, height: view.bounds.height/3)
-        view.layer.addSublayer(playerLayer!)
+        core.player.frame = CGRect(x: 0, y: statusBarHeight(), width: view.bounds.width, height: view.bounds.height/3)
+        view.addSubview(core.player)
         
         core.avPlayer().currentItem?.add(videoOutput)
         core.player.delegate = self
+        
+        thumbnailManager = PCutThumbnailManager(core)
         
         let displayLink = CADisplayLink(target: self, selector: #selector(ViewController.displayLinkRefresh))
         displayLink.add(to: .main, forMode: .common)
         
         timeSlider = UISlider(frame: CGRect(x: 50,
-                                            y: playerLayer!.frame.size.height + playerLayer!.frame.origin.y,
+                                            y: core.player.frame.size.height + core.player.frame.origin.y + 50,
                                             width: UIScreen.main.bounds.width - 100,
                                             height: 50))
         view.addSubview(timeSlider!)
@@ -124,10 +119,10 @@ class ViewController: UIViewController {
         view.addSubview(durationLabel)
         
         let faceRectangleShapeLayer = CAShapeLayer()
-        faceRectangleShapeLayer.bounds = CGRect(x: -playerLayer!.bounds.size.width/2,
-                                                y: -playerLayer!.bounds.size.height,
-                                                width: playerLayer!.bounds.size.width,
-                                                height: playerLayer!.bounds.size.height)
+        faceRectangleShapeLayer.bounds = CGRect(x: -core.player.bounds.size.width/2,
+                                                y: -core.player.bounds.size.height,
+                                                width: core.player.bounds.size.width,
+                                                height: core.player.bounds.size.height)
         faceRectangleShapeLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         faceRectangleShapeLayer.fillColor = nil
         faceRectangleShapeLayer.strokeColor = UIColor.green.cgColor
@@ -294,25 +289,14 @@ class ViewController: UIViewController {
     
     fileprivate func addIndicators(to faceRectanglePath: CGMutablePath, for faceObservation: VNFaceObservation) {
         let faceBounds = VNImageRectForNormalizedRect(faceObservation.boundingBox,
-                                                      Int(playerLayer!.bounds.size.width),
-                                                      Int(playerLayer!.bounds.size.width))
+                                                      Int(core.player.bounds.size.width),
+                                                      Int(core.player.bounds.size.width))
         
         faceRectanglePath.addRect(faceBounds)
         emoji?.frame = CGRect(x: faceBounds.origin.x,
                               y: faceBounds.origin.y,
                               width: emoji!.bounds.size.width,
                               height: emoji!.bounds.size.height)
-    }
-    
-    func thumbnailCount() -> Int {
-        let speed: Double = 1
-        let duration = CMTimeGetSeconds(core.avPlayer().currentItem!.asset.duration)
-        
-        return Int(ceil(duration * currentTimeScale / speed))
-    }
-    
-    func containTime(_ time: CMTime) -> Bool {
-        return thumbnails.filter { return $0.time == time }.count > 0
     }
     
     
@@ -327,12 +311,12 @@ class ViewController: UIViewController {
         let duration = core.avPlayer().currentItem!.asset.duration
         
         var times = [NSValue]()
-        let increment = duration.value / Int64(thumbnailCount())
+        let increment = duration.value / Int64(thumbnailManager!.thumbnailCount())
         var currentValue = Int64(2 * duration.timescale)
         while currentValue <= duration.value {
             let time = CMTime(value: CMTimeValue(currentValue), timescale: duration.timescale)
             
-            if (!containTime(time)) {
+            if (!thumbnailManager!.containTime(time)) {
                 times.append(NSValue(time: time))
             }
             
@@ -346,7 +330,7 @@ class ViewController: UIViewController {
                 switch generateResult {
                 case .succeeded:
                     let thumbnail = PCutThumbnail(time: actualTime, image: thumbnailImage!)
-                    if (!self.containTime(thumbnail.time)) {
+                    if (!self.thumbnailManager!.containTime(thumbnail.time)) {
                         self.thumbnails.append(thumbnail)
                     }
                     currentThumbnails.append(thumbnail)
@@ -436,12 +420,12 @@ class ViewController: UIViewController {
         
         switch gesture.state {
         case .ended:
-            currentTimeScale += (gesture.scale - 1)
-            if (currentTimeScale < 0.1) {
-                currentTimeScale = 0.1
+            core.currentTimeScale += (gesture.scale - 1)
+            if (core.currentTimeScale < 0.1) {
+                core.currentTimeScale = 0.1
             }
-            if (currentTimeScale > 10) {
-                currentTimeScale = 10
+            if (core.currentTimeScale > 10) {
+                core.currentTimeScale = 10
             }
             generateThumbnails()
         default:
@@ -452,10 +436,10 @@ class ViewController: UIViewController {
 
 extension ViewController {
     func mixTimelineVideos() {
-        if timeline.segmentVideos.count == 0 {return }
+        if core.timeline.segmentVideos.count == 0 {return }
         var cursorTime = CMTime.zero
         
-        for segmentVideo in timeline.segmentVideos {
+        for segmentVideo in core.timeline.segmentVideos {
             core.insertSegmentVideo(insertTime: cursorTime, trackIndex: 0, segmentVideo: segmentVideo)
             cursorTime = cursorTime + segmentVideo.asset.duration
         }
@@ -484,5 +468,13 @@ extension ViewController {
 extension ViewController: PCutPlayerProtocol {
     func readyToPlay(_ player: PCutPlayer) {
         generateThumbnails()
+    }
+}
+
+
+extension ViewController {
+    func statusBarHeight() -> CGFloat {
+        let statusBarManager = UIApplication.shared.windows.first?.windowScene?.statusBarManager
+        return statusBarManager!.statusBarFrame.size.height
     }
 }
