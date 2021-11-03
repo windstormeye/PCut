@@ -33,8 +33,6 @@ class PCutVideoTrackSegmentView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    
-    
     convenience init(videoSegment: PCutVideoSegment) {
         self.init(frame: .zero)
         

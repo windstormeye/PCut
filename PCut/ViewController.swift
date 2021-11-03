@@ -43,13 +43,18 @@ class ViewController: UIViewController {
         let videoAsset_0 = AVAsset(url: videoUrl_0!)
         let videoUrl_1 = Bundle.main.url(forResource: "test_video_2", withExtension: "mov")
         let videoAsset_1 = AVAsset(url: videoUrl_1!)
+        let videoUrl_2 = Bundle.main.url(forResource: "test_video", withExtension: "mov")
+        let videoAsset_2 = AVAsset(url: videoUrl_2!)
         
         let videoSegment_0 = PCutVideoSegment(asset: videoAsset_0,
                                               timeRange: CMTimeRange(start: .zero, duration: videoAsset_0.duration))
         let videoSegment_1 = PCutVideoSegment(asset: videoAsset_1,
                                               timeRange: CMTimeRange(start: .zero, duration: videoAsset_1.duration))
+        let videoSegment_2 = PCutVideoSegment(asset: videoAsset_2,
+                                              timeRange: CMTimeRange(start: .zero, duration: videoAsset_2.duration))
         core.timeline.segmentVideos.append(videoSegment_0)
         core.timeline.segmentVideos.append(videoSegment_1)
+        core.timeline.segmentVideos.append(videoSegment_2)
         
         mixTimelineVideos()
         
@@ -99,7 +104,7 @@ class ViewController: UIViewController {
         
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchGesture(gesture:)))
         thumbnailSrollView?.addGestureRecognizer(pinchGesture)
-        thumbnailSrollView?.panGestureRecognizer.require(toFail: pinchGesture)
+//        thumbnailSrollView?.panGestureRecognizer.require(toFail: pinchGesture)
         
         emoji = UILabel()
         emoji?.text = "😆"
@@ -154,8 +159,10 @@ class ViewController: UIViewController {
         
         let videoTrackSegmentView_0 = PCutVideoTrackSegmentView(videoSegment: videoSegment_0)
         let videoTrackSegmentView_1 = PCutVideoTrackSegmentView(videoSegment: videoSegment_1)
+        let videoTrackSegmentView_2 = PCutVideoTrackSegmentView(videoSegment: videoSegment_2)
         videoTrackSegmentViews.append(videoTrackSegmentView_0)
         videoTrackSegmentViews.append(videoTrackSegmentView_1)
+        videoTrackSegmentViews.append(videoTrackSegmentView_2)
         for segmentView in videoTrackSegmentViews {
             thumbnailSrollView?.addSubview(segmentView)
             generateThumbnails(segmentView)
@@ -390,16 +397,17 @@ class ViewController: UIViewController {
         var offsetX: CGFloat = 0
         var totalWidth: CGFloat = 0
         let space: CGFloat = 5
-        for subView in thumbnailSrollView!.subviews {
+        for (index, subView) in thumbnailSrollView!.subviews.enumerated() {
             subView.frame.origin = CGPoint(x: offsetX, y: 0)
             totalWidth += (subView.frame.size.width + space)
-            offsetX += (totalWidth + space)
+            offsetX = subView.frame.origin.x + subView.frame.size.width + space
+            if (index == thumbnailSrollView!.subviews.count - 1) {
+                offsetX -= space
+                totalWidth -= space
+            }
+            print("offset: \(offsetX)")
         }
         thumbnailSrollView?.contentSize = CGSize(width: totalWidth, height: 0)
-    }
-    
-    func containSublayer(_ offsetX: CGFloat) -> Bool {
-        return thumbnailSrollView!.subviews.filter({ $0.frame.origin.x == offsetX }).count > 0
     }
     
     @objc

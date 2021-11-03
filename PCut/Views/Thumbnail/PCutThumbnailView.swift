@@ -16,6 +16,7 @@ class PCutThumbnailView: UIView {
         layer.borderColor = UIColor.white.cgColor
         layer.borderWidth = 0.5
         layer.cornerRadius = 4
+        layer.masksToBounds = true
     }
     
     required init?(coder: NSCoder) {
