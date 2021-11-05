@@ -17,7 +17,6 @@ class ViewController: UIViewController {
     let composition = AVMutableComposition()
     let videoOutput = AVPlayerItemVideoOutput()
     
-    var timeSlider: UISlider?
     var thumbnailSrollView: UIScrollView?
     var detectedFaceRectangleShapeLayer: CAShapeLayer?
     var trackingRequests: [VNTrackObjectRequest]?
@@ -72,29 +71,13 @@ class ViewController: UIViewController {
 //        let displayLink = CADisplayLink(target: self, selector: #selector(ViewController.displayLinkRefresh))
 //        displayLink.add(to: .main, forMode: .common)
         
-        timeSlider = UISlider(frame: CGRect(x: 50,
-                                            y: core.player.frame.size.height + core.player.frame.origin.y + 50,
-                                            width: UIScreen.main.bounds.width - 100,
-                                            height: 50))
-        view.addSubview(timeSlider!)
-        timeSlider!.minimumValue = 0
-        timeSlider!.maximumValue = 1;
-        timeSlider!.addTarget(self,
-                              action: #selector(ViewController.sliderChange(slider:)),
-                              for: UIControl.Event.valueChanged)
-        timeSlider!.addTarget(self,
-                              action: #selector(ViewController.sliderBegin(slider:)),
-                              for: UIControl.Event.touchDown)
-        timeSlider!.addTarget(self,
-                              action: #selector(ViewController.sliderTouchEnd(slider:)),
-                              for: UIControl.Event.touchUpInside)
-        
         thumbnailSrollView = UIScrollView(frame: CGRect(x: 0,
                                                         y: 500,
                                                         width: UIScreen.main.bounds.width,
                                                         height: thumbnailWidth))
         thumbnailSrollView?.showsVerticalScrollIndicator = false
         thumbnailSrollView?.showsHorizontalScrollIndicator = false
+        thumbnailSrollView?.delegate = self
         view.addSubview(thumbnailSrollView!)
         
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchGesture(gesture:)))
@@ -166,18 +149,20 @@ class ViewController: UIViewController {
         indicator = PCutTimelineIndicator(frame: CGRect(x: view.frame.size.width / 2, y: thumbnailSrollView!.frame.origin.y - 20, width: 1, height: thumbnailSrollView!.frame.size.height + 40))
         view.addSubview(indicator!)
         
-        observe()
+//        observe()
     }
     
     func observe() {
         // NOTE: 1/30, per frame callback once
         core.avPlayer().addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: DispatchQueue.main) { currentTime in
+            
+            // TODO: 这个方法内容会做 scrollView 偏移，需要调整逻辑
             let currentSecondes = CMTimeGetSeconds(currentTime)
             let duraion = self.core.avPlayer().currentItem!.asset.duration
             let durationSeconds = CMTimeGetSeconds(duraion)
-            self.timeSlider?.setValue(Float(currentSecondes/durationSeconds), animated: false)
+            let value = CGFloat(currentSecondes/durationSeconds)
             
-            let contentOffsetX = CGFloat(self.timeSlider!.value) * (self.thumbnailSrollView!.contentSize.width - UIScreen.main.bounds.size.width)
+            let contentOffsetX = value * (self.thumbnailSrollView!.contentSize.width - UIScreen.main.bounds.size.width)
             self.thumbnailSrollView?.contentOffset = CGPoint(x: contentOffsetX, y: 0)
         }
     }
@@ -479,6 +464,20 @@ extension ViewController {
 extension ViewController: PCutPlayerProtocol {
     func readyToPlay(_ player: PCutPlayer) {
 //        generateThumbnails()
+    }
+}
+
+extension ViewController: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offsetX = scrollView.contentOffset.x
+        let seekPercent = offsetX / (scrollView.contentSize.width - UIScreen.main.bounds.size.width)
+        
+        let duraion = core.avPlayer().currentItem!.asset.duration
+        let durationSeconds = CMTimeGetSeconds(duraion)
+        let currentDurationSeconds = durationSeconds * Float64(seekPercent)
+        let currentDuration = CMTimeMakeWithSeconds(currentDurationSeconds, preferredTimescale: duraion.timescale)
+        core.avPlayer().seek(to: currentDuration)
+        
     }
 }
 

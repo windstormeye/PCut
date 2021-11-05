@@ -52,7 +52,7 @@ class PCutPlayer: UIView {
         
         playerItemKVOToken = self.playerItem?.observe(\.status, changeHandler: { _playerItem, value in
             if (_playerItem.status == .readyToPlay) {
-                self.player?.play()
+//                self.player?.play()
                 self.delegate?.readyToPlay(self)
             }
         })
