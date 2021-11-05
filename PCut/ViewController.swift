@@ -24,15 +24,17 @@ class ViewController: UIViewController {
     var detectionRequests: [VNDetectFaceRectanglesRequest]?
     var emoji: UILabel?
     var thumbnailManager: PCutThumbnailManager?
-    var videoTrackSegmentViews = [PCutVideoTrackSegmentView]()
+    var indicator: PCutTimelineIndicator?
     
     var core = PCutCore()
     /// frame data source
     var thumbnails = [PCutThumbnail]()
     /// frame collections on the screen
     var screenThumbnails = [PCutThumbnail]()
+    var videoTrackSegmentViews = [PCutVideoTrackSegmentView]()
     
     lazy var sequenceRequestHandler = VNSequenceRequestHandler()
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -66,8 +68,9 @@ class ViewController: UIViewController {
         
         thumbnailManager = PCutThumbnailManager(core)
         
-        let displayLink = CADisplayLink(target: self, selector: #selector(ViewController.displayLinkRefresh))
-        displayLink.add(to: .main, forMode: .common)
+        // TODO: displayLink 方法内部逻辑会抢占 UI 线程导致卡顿，需要查一下为啥
+//        let displayLink = CADisplayLink(target: self, selector: #selector(ViewController.displayLinkRefresh))
+//        displayLink.add(to: .main, forMode: .common)
         
         timeSlider = UISlider(frame: CGRect(x: 50,
                                             y: core.player.frame.size.height + core.player.frame.origin.y + 50,
@@ -86,14 +89,6 @@ class ViewController: UIViewController {
                               action: #selector(ViewController.sliderTouchEnd(slider:)),
                               for: UIControl.Event.touchUpInside)
         
-        // NOTE: 1/30, per frame callback once
-        core.avPlayer().addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: DispatchQueue.main) { currentTime in
-            let currentSecondes = CMTimeGetSeconds(currentTime)
-            let duraion = self.core.avPlayer().currentItem!.asset.duration
-            let durationSeconds = CMTimeGetSeconds(duraion)
-            self.timeSlider?.setValue(Float(currentSecondes/durationSeconds), animated: false)
-        }
-        
         thumbnailSrollView = UIScrollView(frame: CGRect(x: 0,
                                                         y: 500,
                                                         width: UIScreen.main.bounds.width,
@@ -110,7 +105,7 @@ class ViewController: UIViewController {
         emoji?.text = "😆"
         emoji?.font = UIFont.boldSystemFont(ofSize: 100)
         emoji?.sizeToFit()
-        view.addSubview(emoji!)
+//        view.addSubview(emoji!)
         
         let durationLabel = UILabel()
         durationLabel.text = String(format: "%.2fs", CMTimeGetSeconds(self.composition.duration))
@@ -166,6 +161,24 @@ class ViewController: UIViewController {
         for segmentView in videoTrackSegmentViews {
             thumbnailSrollView?.addSubview(segmentView)
             generateThumbnails(segmentView)
+        }
+        
+        indicator = PCutTimelineIndicator(frame: CGRect(x: view.frame.size.width / 2, y: thumbnailSrollView!.frame.origin.y - 20, width: 1, height: thumbnailSrollView!.frame.size.height + 40))
+        view.addSubview(indicator!)
+        
+        observe()
+    }
+    
+    func observe() {
+        // NOTE: 1/30, per frame callback once
+        core.avPlayer().addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: DispatchQueue.main) { currentTime in
+            let currentSecondes = CMTimeGetSeconds(currentTime)
+            let duraion = self.core.avPlayer().currentItem!.asset.duration
+            let durationSeconds = CMTimeGetSeconds(duraion)
+            self.timeSlider?.setValue(Float(currentSecondes/durationSeconds), animated: false)
+            
+            let contentOffsetX = CGFloat(self.timeSlider!.value) * (self.thumbnailSrollView!.contentSize.width - UIScreen.main.bounds.size.width)
+            self.thumbnailSrollView?.contentOffset = CGPoint(x: contentOffsetX, y: 0)
         }
     }
     
@@ -394,7 +407,7 @@ class ViewController: UIViewController {
     }
     
     func refreshUI() {
-        var offsetX: CGFloat = 0
+        var offsetX: CGFloat = UIScreen.main.bounds.size.width / 2
         var totalWidth: CGFloat = 0
         let space: CGFloat = 5
         for (index, subView) in thumbnailSrollView!.subviews.enumerated() {
@@ -404,8 +417,8 @@ class ViewController: UIViewController {
             if (index == thumbnailSrollView!.subviews.count - 1) {
                 offsetX -= space
                 totalWidth -= space
+                totalWidth += UIScreen.main.bounds.size.width
             }
-            print("offset: \(offsetX)")
         }
         thumbnailSrollView?.contentSize = CGSize(width: totalWidth, height: 0)
     }

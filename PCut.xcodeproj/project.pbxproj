@@ -14,6 +14,7 @@
 		0C3E96C7272B84C400B96EAB /* PCutCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3E96C6272B84C400B96EAB /* PCutCore.swift */; };
 		0C3E96CA272B896300B96EAB /* PCutTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C3E96C9272B896300B96EAB /* PCutTimeline.swift */; };
 		0C3E96CC272B8A2E00B96EAB /* test_video_2.mov in Resources */ = {isa = PBXBuildFile; fileRef = 0C3E96CB272B8A2E00B96EAB /* test_video_2.mov */; };
+		0CD3788C2734C1B80089F0CD /* PCutTimelineIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CD3788B2734C1B80089F0CD /* PCutTimelineIndicator.swift */; };
 		0CE3FE83272EE8B3000E61C0 /* test_video1.mov in Resources */ = {isa = PBXBuildFile; fileRef = 0CE3FE82272EE8B3000E61C0 /* test_video1.mov */; };
 		0CE3FE86272F840B000E61C0 /* PCutPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE3FE85272F840B000E61C0 /* PCutPlayer.swift */; };
 		0CE3FE8C2730F85E000E61C0 /* PCutVideoTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE3FE8B2730F85E000E61C0 /* PCutVideoTrack.swift */; };
@@ -35,6 +36,7 @@
 		0C3E96C6272B84C400B96EAB /* PCutCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutCore.swift; sourceTree = "<group>"; };
 		0C3E96C9272B896300B96EAB /* PCutTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutTimeline.swift; sourceTree = "<group>"; };
 		0C3E96CB272B8A2E00B96EAB /* test_video_2.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = test_video_2.mov; sourceTree = "<group>"; };
+		0CD3788B2734C1B80089F0CD /* PCutTimelineIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutTimelineIndicator.swift; sourceTree = "<group>"; };
 		0CE3FE82272EE8B3000E61C0 /* test_video1.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = test_video1.mov; sourceTree = "<group>"; };
 		0CE3FE85272F840B000E61C0 /* PCutPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutPlayer.swift; sourceTree = "<group>"; };
 		0CE3FE8B2730F85E000E61C0 /* PCutVideoTrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutVideoTrack.swift; sourceTree = "<group>"; };
@@ -116,6 +118,7 @@
 		0CE3FE87272F845B000E61C0 /* Timeline */ = {
 			isa = PBXGroup;
 			children = (
+				0CD3788B2734C1B80089F0CD /* PCutTimelineIndicator.swift */,
 			);
 			path = Timeline;
 			sourceTree = "<group>";
@@ -267,6 +270,7 @@
 			files = (
 				0CF6F44F2724FFD3008034FC /* PCutThumbnailManager.swift in Sources */,
 				0CF6F4362721B0E7008034FC /* ViewController.swift in Sources */,
+				0CD3788C2734C1B80089F0CD /* PCutTimelineIndicator.swift in Sources */,
 				0C3E96CA272B896300B96EAB /* PCutTimeline.swift in Sources */,
 				0CF6F4322721B0E7008034FC /* AppDelegate.swift in Sources */,
 				0CE3FE86272F840B000E61C0 /* PCutPlayer.swift in Sources */,
