@@ -25,7 +25,6 @@ class PCutPlayerCotrolView: UIView {
     init(core: PCutCore) {
         self.core = core
         super.init(frame: .zero)
-        
         setupUI()
     }
     
