@@ -77,6 +77,8 @@ class ViewController: UIViewController {
 //        let displayLink = CADisplayLink(target: self, selector: #selector(ViewController.displayLinkRefresh))
 //        displayLink.add(to: .main, forMode: .common)
         
+        let _playerControlView = PCutPlayerCotrolView(core: core)
+        playerControlView = _playerControlView
         view.addSubview(playerControlView)
         playerControlView.snp.makeConstraints { make in
             make.top.equalTo(core.player.snp.bottom)
@@ -162,7 +164,7 @@ class ViewController: UIViewController {
         indicator = PCutTimelineIndicator(frame: CGRect(x: view.frame.size.width / 2, y: thumbnailSrollView!.frame.origin.y - 20, width: 1, height: thumbnailSrollView!.frame.size.height + 40))
         view.addSubview(indicator!)
         
-//        observe()
+        observe()
     }
     
     func observe() {
@@ -482,6 +484,10 @@ extension ViewController: PCutPlayerProtocol {
 
 extension ViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if (core.isPlaying()) {
+            return
+        }
+        
         let offsetX = scrollView.contentOffset.x
         let seekPercent = offsetX / (scrollView.contentSize.width - UIScreen.main.bounds.size.width)
         

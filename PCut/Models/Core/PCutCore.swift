@@ -75,3 +75,10 @@ extension PCutCore {
         }
     }
 }
+
+/// MARK: - Status
+extension PCutCore {
+    func isPlaying() -> Bool {
+        return player.player?.timeControlStatus == .playing
+    }
+}

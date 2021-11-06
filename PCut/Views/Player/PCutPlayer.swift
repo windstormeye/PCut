@@ -66,11 +66,11 @@ class PCutPlayer: UIView {
 /// MARK: - Play
 extension PCutPlayer {
     func play() {
-        
+        player?.play()
     }
     
     func pause() {
-        
+        player?.pause()
     }
     
     func seekToTime(_ time: CMTime) {
