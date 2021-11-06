@@ -24,6 +24,7 @@ class ViewController: UIViewController {
     var emoji: UILabel?
     var thumbnailManager: PCutThumbnailManager?
     var indicator: PCutTimelineIndicator?
+    var playerControlView = PCutPlayerCotrolView()
     
     var core = PCutCore()
     /// frame data source
@@ -59,8 +60,13 @@ class ViewController: UIViewController {
         
         mixTimelineVideos()
         
-        core.player.frame = CGRect(x: 0, y: statusBarHeight(), width: view.bounds.width, height: view.bounds.height/3)
         view.addSubview(core.player)
+        let playerHeight = CGFloat(UIScreen.main.bounds.size.width / 16 * 10)
+        core.player.snp.makeConstraints { make in
+            make.width.equalTo(view)
+            make.height.equalTo(playerHeight)
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
+        }
         
         core.avPlayer().currentItem?.add(videoOutput)
         core.player.delegate = self
@@ -70,6 +76,13 @@ class ViewController: UIViewController {
         // TODO: displayLink 方法内部逻辑会抢占 UI 线程导致卡顿，需要查一下为啥
 //        let displayLink = CADisplayLink(target: self, selector: #selector(ViewController.displayLinkRefresh))
 //        displayLink.add(to: .main, forMode: .common)
+        
+        view.addSubview(playerControlView)
+        playerControlView.snp.makeConstraints { make in
+            make.top.equalTo(core.player.snp.bottom)
+            make.width.equalTo(view)
+            make.height.equalTo(70)
+        }
         
         thumbnailSrollView = UIScrollView(frame: CGRect(x: 0,
                                                         y: 500,
@@ -478,13 +491,5 @@ extension ViewController: UIScrollViewDelegate {
         let currentDuration = CMTimeMakeWithSeconds(currentDurationSeconds, preferredTimescale: duraion.timescale)
         core.avPlayer().seek(to: currentDuration)
         
-    }
-}
-
-
-extension ViewController {
-    func statusBarHeight() -> CGFloat {
-        let statusBarManager = UIApplication.shared.windows.first?.windowScene?.statusBarManager
-        return statusBarManager!.statusBarFrame.size.height
     }
 }

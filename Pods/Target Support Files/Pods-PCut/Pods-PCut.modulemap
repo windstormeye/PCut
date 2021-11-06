@@ -1,0 +1,6 @@
+framework module Pods_PCut {
+  umbrella header "Pods-PCut-umbrella.h"
+
+  export *
+  module * { export * }
+}

@@ -27,15 +27,6 @@ class PCutPlayer: UIView {
     private var playerLayer: AVPlayerLayer?
     private var playerItem: AVPlayerItem?
     
-    override var frame: CGRect {
-        set {
-            super.frame = newValue
-            playerLayer?.frame = newValue
-        }
-        get {
-            return super.frame
-        }
-    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -48,6 +39,7 @@ class PCutPlayer: UIView {
         self.playerItem = playerItem
         
         playerLayer = AVPlayerLayer(player: player)
+        playerLayer?.videoGravity = .resizeAspectFill
         layer.addSublayer(playerLayer!)
         
         playerItemKVOToken = self.playerItem?.observe(\.status, changeHandler: { _playerItem, value in
@@ -60,6 +52,10 @@ class PCutPlayer: UIView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func layoutSubviews() {
+        playerLayer?.frame.size = frame.size
     }
     
     deinit {
