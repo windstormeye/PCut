@@ -25,6 +25,8 @@ class ViewController: UIViewController {
     var thumbnailManager: PCutThumbnailManager?
     var indicator: PCutTimelineIndicator?
     var playerControlView = PCutPlayerCotrolView()
+    var importVideoView = PCutImportVideoView()
+    var imagePickerController = UIImagePickerController()
     
     var core = PCutCore()
     /// frame data source
@@ -41,24 +43,9 @@ class ViewController: UIViewController {
         
         view.backgroundColor = UIColor.black
         
-        let videoUrl_0 = Bundle.main.url(forResource: "test_video1", withExtension: "mov")
-        let videoAsset_0 = AVAsset(url: videoUrl_0!)
-        let videoUrl_1 = Bundle.main.url(forResource: "test_video_2", withExtension: "mov")
-        let videoAsset_1 = AVAsset(url: videoUrl_1!)
-        let videoUrl_2 = Bundle.main.url(forResource: "test_video", withExtension: "mov")
-        let videoAsset_2 = AVAsset(url: videoUrl_2!)
-        
-        let videoSegment_0 = PCutVideoSegment(asset: videoAsset_0,
-                                              timeRange: CMTimeRange(start: .zero, duration: videoAsset_0.duration))
-        let videoSegment_1 = PCutVideoSegment(asset: videoAsset_1,
-                                              timeRange: CMTimeRange(start: .zero, duration: videoAsset_1.duration))
-        let videoSegment_2 = PCutVideoSegment(asset: videoAsset_2,
-                                              timeRange: CMTimeRange(start: .zero, duration: videoAsset_2.duration))
-        core.timeline.segmentVideos.append(videoSegment_0)
-        core.timeline.segmentVideos.append(videoSegment_1)
-        core.timeline.segmentVideos.append(videoSegment_2)
-        
-        mixTimelineVideos()
+        imagePickerController.delegate = self
+        imagePickerController.allowsEditing = true
+        imagePickerController.mediaTypes = ["public.image", "public.movie"]
         
         view.addSubview(core.player)
         let playerHeight = CGFloat(UIScreen.main.bounds.size.width / 16 * 10)
@@ -68,7 +55,7 @@ class ViewController: UIViewController {
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
         }
         
-        core.avPlayer().currentItem?.add(videoOutput)
+//        core.avPlayer().currentItem?.add(videoOutput)
         core.player.delegate = self
         
         thumbnailManager = PCutThumbnailManager(core)
@@ -86,14 +73,25 @@ class ViewController: UIViewController {
             make.height.equalTo(70)
         }
         
-        thumbnailSrollView = UIScrollView(frame: CGRect(x: 0,
-                                                        y: 500,
-                                                        width: UIScreen.main.bounds.width,
-                                                        height: thumbnailWidth))
+        view.addSubview(importVideoView)
+        importVideoView.core = core
+        importVideoView.deletega = self
+        importVideoView.snp.makeConstraints { make in
+            make.top.equalTo(playerControlView.snp.bottom)
+            make.width.equalToSuperview()
+            make.height.equalTo(100)
+        }
+        
+        thumbnailSrollView = UIScrollView()
+        view.addSubview(thumbnailSrollView!)
+        thumbnailSrollView?.snp.makeConstraints({ make in
+            make.top.equalTo(importVideoView)
+            make.width.equalToSuperview()
+            make.height.equalTo(thumbnailWidth)
+        })
         thumbnailSrollView?.showsVerticalScrollIndicator = false
         thumbnailSrollView?.showsHorizontalScrollIndicator = false
         thumbnailSrollView?.delegate = self
-        view.addSubview(thumbnailSrollView!)
         
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchGesture(gesture:)))
         thumbnailSrollView?.addGestureRecognizer(pinchGesture)
@@ -150,19 +148,15 @@ class ViewController: UIViewController {
         detectionRequests = [faceDetectionRequest]
         sequenceRequestHandler = VNSequenceRequestHandler()
         
-        let videoTrackSegmentView_0 = PCutVideoTrackSegmentView(videoSegment: videoSegment_0)
-        let videoTrackSegmentView_1 = PCutVideoTrackSegmentView(videoSegment: videoSegment_1)
-        let videoTrackSegmentView_2 = PCutVideoTrackSegmentView(videoSegment: videoSegment_2)
-        videoTrackSegmentViews.append(videoTrackSegmentView_0)
-        videoTrackSegmentViews.append(videoTrackSegmentView_1)
-        videoTrackSegmentViews.append(videoTrackSegmentView_2)
-        for segmentView in videoTrackSegmentViews {
-            thumbnailSrollView?.addSubview(segmentView)
-            generateThumbnails(segmentView)
-        }
-        
-        indicator = PCutTimelineIndicator(frame: CGRect(x: view.frame.size.width / 2, y: thumbnailSrollView!.frame.origin.y - 20, width: 1, height: thumbnailSrollView!.frame.size.height + 40))
+        indicator = PCutTimelineIndicator()
         view.addSubview(indicator!)
+        indicator?.snp.makeConstraints({ make in
+            make.centerX.equalToSuperview()
+            make.width.equalTo(1)
+            make.height.equalTo(thumbnailSrollView!.snp.height).offset(40)
+            make.top.equalTo(thumbnailSrollView!.snp.top).offset(-20)
+        })
+        indicator?.isHidden = true
         
         observe()
     }
@@ -424,6 +418,8 @@ class ViewController: UIViewController {
             }
         }
         thumbnailSrollView?.contentSize = CGSize(width: totalWidth, height: 0)
+        indicator?.isHidden = false
+        importVideoView.isHidden = true
     }
     
     @objc
@@ -502,3 +498,32 @@ extension ViewController: UIScrollViewDelegate {
         
     }
 }
+
+extension ViewController: PCutImportVideoViewDelegate {
+    func importVideo(_ view: PCutImportVideoView) {
+        self.present(self.imagePickerController, animated: true, completion: nil)
+    }
+}
+
+
+extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    func imagePickerController(_ picker: UIImagePickerController,
+                               didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        let asset = AVAsset(url: info[UIImagePickerController.InfoKey.mediaURL] as! URL)
+        let videoSegment = PCutVideoSegment(asset: asset, timeRange: CMTimeRange(start: .zero, duration: asset.duration))
+        let videoTrackSegmentView = PCutVideoTrackSegmentView(videoSegment: videoSegment)
+        thumbnailSrollView?.addSubview(videoTrackSegmentView)
+        
+        var insertTime = CMTime.zero
+        if (core.timeline.segmentVideos.count != 0) {
+            insertTime = core.timeline.segmentVideos.last!.asset.duration
+        }
+        core.insertSegmentVideo(insertTime: insertTime,
+                                trackIndex: 0,
+                                segmentVideo: videoSegment)
+        generateThumbnails(videoTrackSegmentView)
+        
+        self.imagePickerController.dismiss(animated: true, completion: nil)
+    }
+}
+

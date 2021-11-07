@@ -37,19 +37,20 @@ class PCutPlayerCotrolView: UIView {
         addSubview(preSegmentButton)
         addSubview(nextSegmentButton)
         
-        playButton.setImage(UIImage(systemName: "play.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        let buttonConfig = UIImage.SymbolConfiguration(pointSize: 20)
+        playButton.setImage(UIImage(systemName: "play.fill", withConfiguration: buttonConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         playButton.snp.makeConstraints { make in
             make.size.equalTo(70)
             make.center.equalTo(self)
         }
         
-        preSegmentButton.setImage(UIImage(systemName: "backward.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        preSegmentButton.setImage(UIImage(systemName: "backward.fill", withConfiguration: buttonConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         preSegmentButton.snp.makeConstraints { make in
             make.size.equalTo(70)
             make.right.equalTo(playButton.snp.left)
         }
         
-        nextSegmentButton.setImage(UIImage(systemName: "forward.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+        nextSegmentButton.setImage(UIImage(systemName: "forward.fill", withConfiguration: buttonConfig)?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         nextSegmentButton.snp.makeConstraints { make in
             make.size.equalTo(70)
             make.left.equalTo(playButton.snp.right)

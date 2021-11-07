@@ -40,6 +40,7 @@ class PCutPlayer: UIView {
         
         playerLayer = AVPlayerLayer(player: player)
         playerLayer?.videoGravity = .resizeAspectFill
+        playerLayer?.setAffineTransform(CGAffineTransform(rotationAngle: CGFloat(Double.pi)))
         layer.addSublayer(playerLayer!)
         
         playerItemKVOToken = self.playerItem?.observe(\.status, changeHandler: { _playerItem, value in

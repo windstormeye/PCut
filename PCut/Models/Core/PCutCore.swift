@@ -20,7 +20,6 @@ class PCutCore {
     /// segment speed
     var currentSpeed: Double = 1
     
-    private var playerItem: AVPlayerItem?
     private let composition = AVMutableComposition()
     private var compositionVideoTrack: AVMutableCompositionTrack?
     
@@ -28,9 +27,8 @@ class PCutCore {
     
     
     init() {
-        playerItem  = AVPlayerItem(asset: composition)
         compositionVideoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: trackId)
-        player = PCutPlayer(playerItem: playerItem!)
+        player = PCutPlayer(playerItem: AVPlayerItem(asset: composition))
         
     }
     
@@ -44,11 +42,13 @@ extension PCutCore {
     func insertSegmentVideo(insertTime: CMTime,
                             trackIndex: Int,
                             segmentVideo: PCutVideoSegment) {
+        timeline.segmentVideos.append(segmentVideo)
         let assetTrack = segmentVideo.asset.tracks(withMediaType: .video).first!
         do {
             try compositionVideoTrack?.insertTimeRange(segmentVideo.timeRange,
                                                        of: assetTrack,
                                                        at: insertTime)
+            avPlayer().replaceCurrentItem(with: AVPlayerItem(asset: composition))
         } catch {
             print("\(error)")
         }
@@ -59,8 +59,8 @@ extension PCutCore {
 extension PCutCore {
     func exportVideo() {
         let exportSession = AVAssetExportSession(asset: self.composition, presetName: AVAssetExportPresetHighestQuality)
-        exportSession?.timeRange = CMTimeRange(start: playerItem!.reversePlaybackEndTime,
-                                               duration: playerItem!.forwardPlaybackEndTime)
+        exportSession?.timeRange = CMTimeRange(start: avPlayer().currentItem!.reversePlaybackEndTime,
+                                               duration: avPlayer().currentItem!.forwardPlaybackEndTime)
         exportSession?.outputFileType = exportSession?.supportedFileTypes.first
         let exportPath = NSTemporaryDirectory().appending("video.mov")
         let exportUrl = URL(fileURLWithPath: exportPath)
