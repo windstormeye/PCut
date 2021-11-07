@@ -170,6 +170,9 @@ class ViewController: UIViewController {
     func observe() {
         // NOTE: 1/30, per frame callback once
         core.avPlayer().addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 30), queue: DispatchQueue.main) { currentTime in
+            if (!self.core.isPlaying()) {
+                return
+            }
             
             // TODO: 这个方法内容会做 scrollView 偏移，需要调整逻辑
             let currentSecondes = CMTimeGetSeconds(currentTime)
