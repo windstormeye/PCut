@@ -51,9 +51,8 @@ class PCutImportVideoView: UIView {
             make.size.equalTo(50)
         }
         
-        importVideoButton.addTarget(self,
-                                    action: #selector(PCutImportVideoView.importVideo),
-                                    for: .touchUpInside)
+        let tap = UITapGestureRecognizer(target: self, action: #selector(PCutImportVideoView.importVideo))
+        addGestureRecognizer(tap)
         
         importVideoTipsLabel.text = "导入视频"
         importVideoTipsLabel.textColor = .white

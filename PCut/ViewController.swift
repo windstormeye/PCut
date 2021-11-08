@@ -27,6 +27,7 @@ class ViewController: UIViewController {
     var playerControlView = PCutPlayerCotrolView()
     var importVideoView = PCutImportVideoView()
     var imagePickerController = UIImagePickerController()
+    var timelineImportVideoButton = PCutTimelineImportVideoButton()
     
     var core = PCutCore()
     /// frame data source
@@ -45,7 +46,7 @@ class ViewController: UIViewController {
         
         imagePickerController.delegate = self
         imagePickerController.allowsEditing = true
-        imagePickerController.mediaTypes = ["public.image", "public.movie"]
+        imagePickerController.mediaTypes = ["public.movie"]
         
         view.addSubview(core.player)
         let playerHeight = CGFloat(UIScreen.main.bounds.size.width / 16 * 10)
@@ -85,13 +86,14 @@ class ViewController: UIViewController {
         thumbnailSrollView = UIScrollView()
         view.addSubview(thumbnailSrollView!)
         thumbnailSrollView?.snp.makeConstraints({ make in
-            make.top.equalTo(importVideoView)
+            make.top.equalTo(importVideoView).offset(20)
             make.width.equalToSuperview()
             make.height.equalTo(thumbnailWidth)
         })
         thumbnailSrollView?.showsVerticalScrollIndicator = false
         thumbnailSrollView?.showsHorizontalScrollIndicator = false
         thumbnailSrollView?.delegate = self
+        thumbnailSrollView?.bounces = false
         
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchGesture(gesture:)))
         thumbnailSrollView?.addGestureRecognizer(pinchGesture)
@@ -157,6 +159,17 @@ class ViewController: UIViewController {
             make.top.equalTo(thumbnailSrollView!.snp.top).offset(-20)
         })
         indicator?.isHidden = true
+        
+        view.addSubview(timelineImportVideoButton)
+        timelineImportVideoButton.snp.makeConstraints { make in
+            make.right.equalToSuperview()
+            make.size.equalTo(50)
+            make.centerY.equalTo(self.thumbnailSrollView!)
+        }
+        timelineImportVideoButton.isHidden = true
+        timelineImportVideoButton.addTarget(self,
+                                            action: #selector(ViewController.timelineImportVideo),
+                                            for: .touchUpInside)
         
         observe()
     }
@@ -406,7 +419,7 @@ class ViewController: UIViewController {
     func refreshUI() {
         var offsetX: CGFloat = UIScreen.main.bounds.size.width / 2
         var totalWidth: CGFloat = 0
-        let space: CGFloat = 5
+        let space: CGFloat = 1
         for (index, subView) in thumbnailSrollView!.subviews.enumerated() {
             subView.frame.origin = CGPoint(x: offsetX, y: 0)
             totalWidth += (subView.frame.size.width + space)
@@ -420,6 +433,7 @@ class ViewController: UIViewController {
         thumbnailSrollView?.contentSize = CGSize(width: totalWidth, height: 0)
         indicator?.isHidden = false
         importVideoView.isHidden = true
+        timelineImportVideoButton.isHidden = false
     }
     
     @objc
@@ -462,18 +476,6 @@ class ViewController: UIViewController {
     }
 }
 
-extension ViewController {
-    func mixTimelineVideos() {
-        if core.timeline.segmentVideos.count == 0 {return }
-        var cursorTime = CMTime.zero
-        
-        for segmentVideo in core.timeline.segmentVideos {
-            core.insertSegmentVideo(insertTime: cursorTime, trackIndex: 0, segmentVideo: segmentVideo)
-            cursorTime = cursorTime + segmentVideo.asset.duration
-        }
-    }
-}
-
 /// MARK: - PCutPlayerProtocol
 extension ViewController: PCutPlayerProtocol {
     func readyToPlay(_ player: PCutPlayer) {
@@ -488,7 +490,9 @@ extension ViewController: UIScrollViewDelegate {
         }
         
         let offsetX = scrollView.contentOffset.x
-        let seekPercent = offsetX / (scrollView.contentSize.width - UIScreen.main.bounds.size.width)
+        let seekPercent = ceil(offsetX) / (scrollView.contentSize.width - UIScreen.main.bounds.size.width)
+        print(seekPercent)
+        
         
         let duraion = core.avPlayer().currentItem!.asset.duration
         let durationSeconds = CMTimeGetSeconds(duraion)
@@ -524,6 +528,13 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         generateThumbnails(videoTrackSegmentView)
         
         self.imagePickerController.dismiss(animated: true, completion: nil)
+    }
+}
+
+extension ViewController {
+    @objc
+    private func timelineImportVideo() {
+        self.present(self.imagePickerController, animated: true, completion: nil)
     }
 }
 
