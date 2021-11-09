@@ -28,6 +28,9 @@ class ViewController: UIViewController {
     var importVideoView = PCutImportVideoView()
     var imagePickerController = UIImagePickerController()
     var timelineImportVideoButton = PCutTimelineImportVideoButton()
+    var chaseTime = CMTime.zero
+    var isSeekInProgress = false
+    var playerCurrentItemStatus: AVPlayerItem.Status = .unknown
     
     var core = PCutCore()
     /// frame data source
@@ -490,15 +493,15 @@ extension ViewController: UIScrollViewDelegate {
         }
         
         let offsetX = scrollView.contentOffset.x
-        let seekPercent = ceil(offsetX) / (scrollView.contentSize.width - UIScreen.main.bounds.size.width)
-        print(seekPercent)
-        
-        
+        let seekPercent = offsetX / (scrollView.contentSize.width - UIScreen.main.bounds.size.width)
+        // TODO: 估计与 offset 有关，导致滑动时间轴时不准
         let duraion = core.avPlayer().currentItem!.asset.duration
         let durationSeconds = CMTimeGetSeconds(duraion)
         let currentDurationSeconds = durationSeconds * Float64(seekPercent)
         let currentDuration = CMTimeMakeWithSeconds(currentDurationSeconds, preferredTimescale: duraion.timescale)
-        core.avPlayer().seek(to: currentDuration)
+        core.avPlayer().seek(to: currentDuration, toleranceBefore: .zero, toleranceAfter: .zero)
+        
+        print(CMTimeGetSeconds(currentDuration))
         
     }
 }
@@ -520,7 +523,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         
         var insertTime = CMTime.zero
         if (core.timeline.segmentVideos.count != 0) {
-            insertTime = core.timeline.segmentVideos.last!.asset.duration
+            insertTime = core.avPlayer().currentItem!.asset.duration
         }
         core.insertSegmentVideo(insertTime: insertTime,
                                 trackIndex: 0,
