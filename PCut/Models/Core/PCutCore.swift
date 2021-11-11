@@ -9,6 +9,7 @@ import Foundation
 import CoreMedia
 import AVFoundation
 import Photos
+import Toaster
 
 class PCutCore {
     var currentTime = CMTime.zero
@@ -45,9 +46,10 @@ extension PCutCore {
         timeline.segmentVideos.append(segmentVideo)
         let assetTrack = segmentVideo.asset.tracks(withMediaType: .video).first!
         do {
-            try compositionVideoTrack?.insertTimeRange(segmentVideo.timeRange,
+            try compositionVideoTrack!.insertTimeRange(segmentVideo.timeRange,
                                                        of: assetTrack,
                                                        at: insertTime)
+            compositionVideoTrack!.preferredTransform = assetTrack.preferredTransform
             avPlayer().replaceCurrentItem(with: AVPlayerItem(asset: composition))
         } catch {
             print("\(error)")
@@ -73,6 +75,69 @@ extension PCutCore {
                 }
             }
         }
+    }
+    
+    func pppp() {
+        // Watermark Effect
+        let size = self.compositionVideoTrack!.naturalSize
+
+        // create text Layer
+        let titleLayer = CATextLayer()
+        titleLayer.backgroundColor = UIColor.black.cgColor
+        titleLayer.string = "加个字幕也太鸡儿难了"
+        titleLayer.fontSize = 70;
+        titleLayer.alignmentMode = CATextLayerAlignmentMode.center
+        titleLayer.frame = CGRect(x: 0, y: 50, width: size.width, height: size.height / 6)
+        
+
+        let videolayer = CALayer()
+        videolayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+
+        let parentlayer = CALayer()
+        parentlayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+        parentlayer.addSublayer(videolayer)
+        parentlayer.addSublayer(titleLayer)
+
+        let layercomposition = AVMutableVideoComposition()
+        layercomposition.frameDuration = CMTimeMake(value: 1, timescale: 30)
+        layercomposition.renderSize = size
+        layercomposition.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videolayer, in: parentlayer)
+
+        // instruction for watermark
+        let instruction = AVMutableVideoCompositionInstruction()
+        instruction.timeRange = CMTimeRangeMake(start: CMTime.zero, duration: self.composition.duration)
+        let videotrack = self.composition.tracks(withMediaType: AVMediaType.video)[0] as AVAssetTrack
+        let layerinstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videotrack)
+        instruction.layerInstructions = [layerinstruction]
+        layercomposition.instructions = [instruction]
+
+
+        // use AVAssetExportSession to export video
+        let assetExport = AVAssetExportSession(asset: self.composition, presetName:AVAssetExportPresetHighestQuality)
+        assetExport?.outputFileType = AVFileType.mov
+        assetExport?.videoComposition = layercomposition
+
+        let exportPath = NSTemporaryDirectory().appending("video.mov")
+        let exportUrl = URL(fileURLWithPath: exportPath)
+        assetExport?.outputURL = exportUrl
+        _ = try? FileManager().removeItem(at: exportUrl)
+        
+        assetExport?.exportAsynchronously(completionHandler: {
+            switch assetExport!.status {
+            case AVAssetExportSession.Status.failed:
+                PCutToast.show("导出视频到相册失败\(assetExport!.error!.localizedDescription)")
+            case AVAssetExportSession.Status.cancelled:
+                PCutToast.show("导出视频到相册失败\(assetExport!.error!.localizedDescription)")
+            default:
+                PHPhotoLibrary.shared().performChanges({
+                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: exportUrl as URL)
+                }) { saved, error in
+                    if saved {
+                        PCutToast.show("导出视频到相册成功")
+                    }
+                }
+            }
+        })
     }
 }
 

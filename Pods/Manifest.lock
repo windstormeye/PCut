@@ -1,20 +1,24 @@
 PODS:
   - LookinServer (1.0.4)
   - SnapKit (5.0.1)
+  - Toaster (2.3.0)
 
 DEPENDENCIES:
   - LookinServer (~> 1.0.2)
   - SnapKit (~> 5.0.1)
+  - Toaster (~> 2.3.0)
 
 SPEC REPOS:
   trunk:
     - LookinServer
     - SnapKit
+    - Toaster
 
 SPEC CHECKSUMS:
   LookinServer: 743c1681771d0a8dcc38825325a080c3186404a5
   SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb
+  Toaster: c3473963c78e8cabbf6ea6f11ad0fdaae6f54987
 
-PODFILE CHECKSUM: bd14aee90126ea61f62394805e319739f15e1dd7
+PODFILE CHECKSUM: be668e95710b3bcd001376ca4e0fdd2f7f290771
 
 COCOAPODS: 1.8.4
