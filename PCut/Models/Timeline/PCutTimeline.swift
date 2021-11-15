@@ -9,5 +9,6 @@ import Foundation
 
 
 struct PCutTimeline {
-    var segmentVideos = [PCutVideoSegment]()
+    var videoSegments = [PCutVideoSegment]()
+    var textSegments = [PCutTextSegment]() // TODO: 把文本内容塞进来
 }

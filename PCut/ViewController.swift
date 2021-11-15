@@ -31,6 +31,7 @@ class ViewController: UIViewController {
     var chaseTime = CMTime.zero
     var isSeekInProgress = false
     var playerCurrentItemStatus: AVPlayerItem.Status = .unknown
+    var preview = PCutPreview()
     
     var core = PCutCore()
     /// frame data source
@@ -58,6 +59,12 @@ class ViewController: UIViewController {
             make.height.equalTo(playerHeight)
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
         }
+        
+        view.addSubview(preview)
+        preview.snp.makeConstraints({ make in
+            make.size.equalTo(core.player)
+            make.top.equalTo(core.player)
+        })
         
 //        core.avPlayer().currentItem?.add(videoOutput)
         core.player.delegate = self
@@ -524,7 +531,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         thumbnailSrollView?.addSubview(videoTrackSegmentView)
         
         var insertTime = CMTime.zero
-        if (core.timeline.segmentVideos.count != 0) {
+        if (core.timeline.videoSegments.count != 0) {
             insertTime = core.avPlayer().currentItem!.asset.duration
         }
         core.insertSegmentVideo(insertTime: insertTime,

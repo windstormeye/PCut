@@ -43,7 +43,7 @@ extension PCutCore {
     func insertSegmentVideo(insertTime: CMTime,
                             trackIndex: Int,
                             segmentVideo: PCutVideoSegment) {
-        timeline.segmentVideos.append(segmentVideo)
+        timeline.videoSegments.append(segmentVideo)
         let assetTrack = segmentVideo.asset.tracks(withMediaType: .video).first!
         do {
             try compositionVideoTrack!.insertTimeRange(segmentVideo.timeRange,
