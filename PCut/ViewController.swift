@@ -539,11 +539,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
                                 segmentVideo: videoSegment)
         generateThumbnails(videoTrackSegmentView)
         
-        let textLayer = PCutTextLayer.buildLayerbuildTxt("2333", textSize: 17, textColor: UIColor.white, stroke: UIColor.white, opacity: 1, textRect: CGRect(x: 100, y: 0, width: 100, height: 20), fontPath: nil, viewBounds: core.player.bounds.size, startTime: 0, duration: 5)
-        
-        
-//        core.exportVideo()
-        core.pppp()
+        core.mixAssetsVideoExport()
         
         self.imagePickerController.dismiss(animated: true, completion: nil)
     }

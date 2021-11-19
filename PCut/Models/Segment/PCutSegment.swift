@@ -23,6 +23,6 @@ struct PCutTextSegment: PCutSegment {
     let id: UUID = UUID()
     var string: String = ""
     var fontSize: CGFloat = 0
-    var color: UIColor = .white
-    var frame: CGRect = .zero // TODO: 这个属性需要调整，不应该传入 size，看看能不能读到 natureSize
+    var textColor: UIColor = .white
+    var backgroundColor: UIColor = .black
 }

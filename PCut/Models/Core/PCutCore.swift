@@ -59,7 +59,7 @@ extension PCutCore {
 
 /// MARK: - Export Videos
 extension PCutCore {
-    func exportVideo() {
+    func onlyVideoExport() {
         let exportSession = AVAssetExportSession(asset: self.composition, presetName: AVAssetExportPresetHighestQuality)
         exportSession?.timeRange = CMTimeRange(start: avPlayer().currentItem!.reversePlaybackEndTime,
                                                duration: avPlayer().currentItem!.forwardPlaybackEndTime)
@@ -77,18 +77,14 @@ extension PCutCore {
         }
     }
     
-    func pppp() {
-        // Watermark Effect
+    func mixAssetsVideoExport() {
         let size = self.compositionVideoTrack!.naturalSize
-
-        // create text Layer
-        let titleLayer = CATextLayer()
-        titleLayer.backgroundColor = UIColor.black.cgColor
-        titleLayer.string = "加个字幕也太鸡儿难了"
-        titleLayer.fontSize = 70;
-        titleLayer.alignmentMode = CATextLayerAlignmentMode.center
-        titleLayer.frame = CGRect(x: 0, y: 50, width: size.width, height: size.height / 6)
-        
+        let textSegment = PCutTextSegment(string: "233",
+                                          fontSize: 75,
+                                          textColor: .white,
+                                          backgroundColor: .black)
+        let titleLayer = PCutTextLayer(textSegment)
+        titleLayer.frame.origin = CGPoint(x: (size.width - titleLayer.frame.size.width)/2, y: titleLayer.frame.origin.y)
 
         let videolayer = CALayer()
         videolayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)

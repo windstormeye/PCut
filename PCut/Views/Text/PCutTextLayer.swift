@@ -22,6 +22,7 @@ class PCutTextLayer: CATextLayer {
     convenience init(_ textSegment: PCutTextSegment) {
         self.init()
         self.textSegment = textSegment
+        setupUI()
     }
     
     private func setupUI() {
@@ -29,6 +30,9 @@ class PCutTextLayer: CATextLayer {
         string = textSegment.string
         fontSize = textSegment.fontSize;
         alignmentMode = CATextLayerAlignmentMode.center
-        frame = textSegment.frame
+        
+        let width = textSegment.string.textAutoWidth(height: textSegment.fontSize,
+                                                      font: UIFont.systemFont(ofSize: textSegment.fontSize))
+        frame = CGRect(x: 0, y: 0, width: width, height: textSegment.fontSize)
     }
 }
