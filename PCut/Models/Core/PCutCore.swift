@@ -82,12 +82,28 @@ extension PCutCore {
         let textSegment = PCutTextSegment(string: "233",
                                           fontSize: 75,
                                           textColor: .white,
-                                          backgroundColor: .black, duration: CMTimeMake(value: 2, timescale: 1))
+                                          backgroundColor: .black,
+                                          duration: CMTimeMake(value: 1, timescale: 1),
+                                          startTime: CMTimeMake(value: 2, timescale: 1))
         for textSegment in self.timeline.textSegments {
             
         }
         let titleLayer = PCutTextLayer(textSegment)
         titleLayer.frame.origin = CGPoint(x: (size.width - titleLayer.frame.size.width)/2, y: titleLayer.frame.origin.y)
+        let animationTitleLayer = CALayer()
+        animationTitleLayer.addSublayer(titleLayer)
+        
+        // TODO: Combed code.
+        let fadeOutAnimation = CABasicAnimation(keyPath: "opacity")
+        fadeOutAnimation.fromValue = 1
+        fadeOutAnimation.toValue = 0
+        fadeOutAnimation.isAdditive = false
+        fadeOutAnimation.isRemovedOnCompletion = false
+        fadeOutAnimation.beginTime = CMTimeGetSeconds(CMTimeAdd(textSegment.startTime, textSegment.duration))
+        fadeOutAnimation.duration = 0.1
+        fadeOutAnimation.autoreverses = false
+        fadeOutAnimation.fillMode = CAMediaTimingFillMode.both
+        animationTitleLayer.add(fadeOutAnimation, forKey: "opacity")
 
         let videolayer = CALayer()
         videolayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
@@ -95,7 +111,7 @@ extension PCutCore {
         let parentlayer = CALayer()
         parentlayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         parentlayer.addSublayer(videolayer)
-        parentlayer.addSublayer(titleLayer)
+        parentlayer.addSublayer(animationTitleLayer)
 
         let layercomposition = AVMutableVideoComposition()
         layercomposition.frameDuration = CMTimeMake(value: 1, timescale: 30)

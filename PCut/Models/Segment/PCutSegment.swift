@@ -26,4 +26,5 @@ struct PCutTextSegment: PCutSegment {
     var textColor: UIColor = .white
     var backgroundColor: UIColor = .black
     var duration: CMTime = .zero
+    var startTime: CMTime = .zero
 }
