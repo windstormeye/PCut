@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import CoreMedia
 
 class PCutTextLayer: CATextLayer {
     var textSegment = PCutTextSegment()
@@ -30,9 +31,32 @@ class PCutTextLayer: CATextLayer {
         string = textSegment.string
         fontSize = textSegment.fontSize;
         alignmentMode = CATextLayerAlignmentMode.center
-        
+        duration = CFTimeInterval(CMTimeGetSeconds(textSegment.duration))
         let width = textSegment.string.textAutoWidth(height: textSegment.fontSize,
                                                       font: UIFont.systemFont(ofSize: textSegment.fontSize))
         frame = CGRect(x: 0, y: 0, width: width, height: textSegment.fontSize)
+        
+        
+        let fadeInAnimation = CABasicAnimation(keyPath: "opacity")
+        fadeInAnimation.fromValue = 0
+        fadeInAnimation.toValue = 1
+        fadeInAnimation.isAdditive = false
+        fadeInAnimation.isRemovedOnCompletion = false
+        fadeInAnimation.beginTime = 0
+        fadeInAnimation.duration = 1
+        fadeInAnimation.autoreverses = false
+        fadeInAnimation.fillMode = CAMediaTimingFillMode.both
+        add(fadeInAnimation, forKey: "opacity")
+        
+        let fadeOutAnimation = CABasicAnimation(keyPath: "opacity")
+        fadeOutAnimation.fromValue = 1
+        fadeOutAnimation.toValue = 0
+        fadeOutAnimation.isAdditive = false
+        fadeOutAnimation.isRemovedOnCompletion = false
+        fadeOutAnimation.beginTime = 2
+        fadeOutAnimation.duration = 1
+        fadeOutAnimation.autoreverses = false
+        fadeOutAnimation.fillMode = CAMediaTimingFillMode.both
+        add(fadeOutAnimation, forKey: "opacity")
     }
 }

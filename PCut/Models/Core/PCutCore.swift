@@ -82,7 +82,10 @@ extension PCutCore {
         let textSegment = PCutTextSegment(string: "233",
                                           fontSize: 75,
                                           textColor: .white,
-                                          backgroundColor: .black)
+                                          backgroundColor: .black, duration: CMTimeMake(value: 2, timescale: 1))
+        for textSegment in self.timeline.textSegments {
+            
+        }
         let titleLayer = PCutTextLayer(textSegment)
         titleLayer.frame.origin = CGPoint(x: (size.width - titleLayer.frame.size.width)/2, y: titleLayer.frame.origin.y)
 
