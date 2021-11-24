@@ -539,6 +539,14 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
                                 segmentVideo: videoSegment)
         generateThumbnails(videoTrackSegmentView)
         
+        let textSegment = PCutTextSegment(string: "233",
+                                          fontSize: 75,
+                                          textColor: .white,
+                                          backgroundColor: .black,
+                                          duration: CMTimeMake(value: 1, timescale: 1),
+                                          startTime: CMTimeMake(value: 2, timescale: 1))
+        core.timeline.textSegments.append(textSegment)
+        
         core.mixAssetsVideoExport()
         
         self.imagePickerController.dismiss(animated: true, completion: nil)

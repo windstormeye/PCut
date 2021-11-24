@@ -79,46 +79,26 @@ extension PCutCore {
     
     func mixAssetsVideoExport() {
         let size = self.compositionVideoTrack!.naturalSize
-        let textSegment = PCutTextSegment(string: "233",
-                                          fontSize: 75,
-                                          textColor: .white,
-                                          backgroundColor: .black,
-                                          duration: CMTimeMake(value: 1, timescale: 1),
-                                          startTime: CMTimeMake(value: 2, timescale: 1))
-        for textSegment in self.timeline.textSegments {
-            
-        }
-        let titleLayer = PCutTextLayer(textSegment)
-        titleLayer.frame.origin = CGPoint(x: (size.width - titleLayer.frame.size.width)/2, y: titleLayer.frame.origin.y)
-        let animationTitleLayer = CALayer()
-        animationTitleLayer.addSublayer(titleLayer)
         
-        // TODO: Combed code.
-        let fadeOutAnimation = CABasicAnimation(keyPath: "opacity")
-        fadeOutAnimation.fromValue = 1
-        fadeOutAnimation.toValue = 0
-        fadeOutAnimation.isAdditive = false
-        fadeOutAnimation.isRemovedOnCompletion = false
-        fadeOutAnimation.beginTime = CMTimeGetSeconds(CMTimeAdd(textSegment.startTime, textSegment.duration))
-        fadeOutAnimation.duration = 0.1
-        fadeOutAnimation.autoreverses = false
-        fadeOutAnimation.fillMode = CAMediaTimingFillMode.both
-        animationTitleLayer.add(fadeOutAnimation, forKey: "opacity")
-
-        let videolayer = CALayer()
-        videolayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
-
         let parentlayer = CALayer()
         parentlayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+        
+        let videolayer = CALayer()
+        videolayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         parentlayer.addSublayer(videolayer)
-        parentlayer.addSublayer(animationTitleLayer)
+        
+        for textSegment in self.timeline.textSegments {
+            let titleLayer = PCutTextLayer(textSegment)
+            titleLayer.frame.origin = CGPoint(x: (size.width - titleLayer.frame.size.width)/2,
+                                              y: titleLayer.frame.origin.y)
+            parentlayer.addSublayer(titleLayer)
+        }
 
         let layercomposition = AVMutableVideoComposition()
         layercomposition.frameDuration = CMTimeMake(value: 1, timescale: 30)
         layercomposition.renderSize = size
         layercomposition.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videolayer, in: parentlayer)
 
-        // instruction for watermark
         let instruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = CMTimeRangeMake(start: CMTime.zero, duration: self.composition.duration)
         let videotrack = self.composition.tracks(withMediaType: AVMediaType.video)[0] as AVAssetTrack
@@ -127,7 +107,6 @@ extension PCutCore {
         layercomposition.instructions = [instruction]
 
 
-        // use AVAssetExportSession to export video
         let assetExport = AVAssetExportSession(asset: self.composition, presetName:AVAssetExportPresetHighestQuality)
         assetExport?.outputFileType = AVFileType.mov
         assetExport?.videoComposition = layercomposition
