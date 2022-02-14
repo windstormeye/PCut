@@ -22,13 +22,17 @@ class PCutCore {
     var currentSpeed: Double = 1
     
     private let composition = AVMutableComposition()
+    /// 单独的视频轨道
     private var compositionVideoTrack: AVMutableCompositionTrack?
-    
-    let trackId = CMPersistentTrackID()
+    /// 单独的音频轨道
+    private var compositionAudioTrack: AVMutableCompositionTrack?
     
     
     init() {
-        compositionVideoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: trackId)
+        // 创建出一个单独的视频轨道
+        compositionVideoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: CMPersistentTrackID())
+        // 创建出一个单独的音频轨道
+        compositionAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: CMPersistentTrackID())
         player = PCutPlayer(playerItem: AVPlayerItem(asset: composition))
         
     }
@@ -38,18 +42,21 @@ class PCutCore {
     }
 }
 
-/// MARK: - Mix Segments
+// MARK: - Mix Segments
 extension PCutCore {
     func insertSegmentVideo(insertTime: CMTime,
                             trackIndex: Int,
                             segmentVideo: PCutVideoSegment) {
         timeline.videoSegments.append(segmentVideo)
-        let assetTrack = segmentVideo.asset.tracks(withMediaType: .video).first!
+        let videoAssetTrack = segmentVideo.asset.tracks(withMediaType: .video).first!
+        let audioAssetTrack = segmentVideo.asset.tracks(withMediaType: .audio).first!
         do {
-            try compositionVideoTrack!.insertTimeRange(segmentVideo.timeRange,
-                                                       of: assetTrack,
-                                                       at: insertTime)
-            compositionVideoTrack!.preferredTransform = assetTrack.preferredTransform
+            // 更新 segment 中的视频资源到播放器的视频轨道中
+            try compositionVideoTrack!.insertTimeRange(segmentVideo.timeRange, of: videoAssetTrack, at: insertTime)
+            // 更新 segment 中的音频资源到播放器的音频轨道中
+            try compositionAudioTrack!.insertTimeRange(segmentVideo.timeRange, of: audioAssetTrack, at: insertTime)
+            
+            compositionVideoTrack!.preferredTransform = videoAssetTrack.preferredTransform
             avPlayer().replaceCurrentItem(with: AVPlayerItem(asset: composition))
         } catch {
             print("\(error)")
@@ -57,7 +64,7 @@ extension PCutCore {
     }
 }
 
-/// MARK: - Export Videos
+// MARK: - Export Videos
 extension PCutCore {
     func onlyVideoExport() {
         let exportSession = AVAssetExportSession(asset: self.composition, presetName: AVAssetExportPresetHighestQuality)
@@ -135,7 +142,14 @@ extension PCutCore {
     }
 }
 
-/// MARK: - Status
+// MARK: Update UI
+extension PCutCore {
+    func updateTextUI() {
+        
+    }
+}
+
+// MARK: - Status
 extension PCutCore {
     func isPlaying() -> Bool {
         return player.player?.timeControlStatus == .playing

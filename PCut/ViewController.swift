@@ -547,7 +547,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
                                           startTime: CMTimeMake(value: 2, timescale: 1))
         core.timeline.textSegments.append(textSegment)
         
-        core.mixAssetsVideoExport()
+//        core.mixAssetsVideoExport()
         
         self.imagePickerController.dismiss(animated: true, completion: nil)
     }

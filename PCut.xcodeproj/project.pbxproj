@@ -26,6 +26,8 @@
 		2B17ED8527377317002A57D4 /* PCutImportVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B17ED8427377317002A57D4 /* PCutImportVideoView.swift */; };
 		A60BC0432741F4A200D479DA /* PCutTextLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60BC0422741F4A200D479DA /* PCutTextLayer.swift */; };
 		A64E5BDA273C09C800E98BD4 /* PCutPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64E5BD9273C09C800E98BD4 /* PCutPreview.swift */; };
+		A68B7111275C6E3E006D36CD /* PCutTextSegmentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A68B7110275C6E3E006D36CD /* PCutTextSegmentManager.swift */; };
+		A68B7115275C746A006D36CD /* PCutPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A68B7114275C746A006D36CD /* PCutPlayerView.swift */; };
 		A6CA70052739680200E590E3 /* PCutTimelineImportVideoButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CA70042739680200E590E3 /* PCutTimelineImportVideoButton.swift */; };
 		A6D85F79273D64950011EE20 /* PCutToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6D85F78273D64950011EE20 /* PCutToast.swift */; };
 		A6E7F984274F1F0A007EEE64 /* PCutBottomBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6E7F983274F1F0A007EEE64 /* PCutBottomBar.swift */; };
@@ -58,6 +60,8 @@
 		7F326448B9C3BDF22061512F /* Pods-PCut.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PCut.release.xcconfig"; path = "Target Support Files/Pods-PCut/Pods-PCut.release.xcconfig"; sourceTree = "<group>"; };
 		A60BC0422741F4A200D479DA /* PCutTextLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutTextLayer.swift; sourceTree = "<group>"; };
 		A64E5BD9273C09C800E98BD4 /* PCutPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutPreview.swift; sourceTree = "<group>"; };
+		A68B7110275C6E3E006D36CD /* PCutTextSegmentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutTextSegmentManager.swift; sourceTree = "<group>"; };
+		A68B7114275C746A006D36CD /* PCutPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutPlayerView.swift; sourceTree = "<group>"; };
 		A6CA70042739680200E590E3 /* PCutTimelineImportVideoButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutTimelineImportVideoButton.swift; sourceTree = "<group>"; };
 		A6D85F78273D64950011EE20 /* PCutToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutToast.swift; sourceTree = "<group>"; };
 		A6E7F983274F1F0A007EEE64 /* PCutBottomBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutBottomBar.swift; sourceTree = "<group>"; };
@@ -130,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				0CE3FE85272F840B000E61C0 /* PCutPlayer.swift */,
+				A68B7114275C746A006D36CD /* PCutPlayerView.swift */,
 			);
 			path = Player;
 			sourceTree = "<group>";
@@ -201,6 +206,7 @@
 				0C3E96C5272B847D00B96EAB /* Core */,
 				0C3E96C4272AF5A700B96EAB /* Segment */,
 				0C3E96C3272AF59A00B96EAB /* Thumbnail */,
+				A68B7110275C6E3E006D36CD /* PCutTextSegmentManager.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -387,8 +393,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A68B7115275C746A006D36CD /* PCutPlayerView.swift in Sources */,
 				0CF6F44F2724FFD3008034FC /* PCutThumbnailManager.swift in Sources */,
 				0CF6F4362721B0E7008034FC /* ViewController.swift in Sources */,
+				A68B7111275C6E3E006D36CD /* PCutTextSegmentManager.swift in Sources */,
 				0CD3788C2734C1B80089F0CD /* PCutTimelineIndicator.swift in Sources */,
 				A6FEA68227473E19004042C6 /* String+Extension.swift in Sources */,
 				A6E7F984274F1F0A007EEE64 /* PCutBottomBar.swift in Sources */,
