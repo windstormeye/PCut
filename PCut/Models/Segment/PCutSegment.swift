@@ -13,13 +13,17 @@ protocol PCutSegment {
     var id: UUID { get }
 }
 
-struct PCutVideoSegment: PCutSegment {
+struct PCutVideoSegment: PCutSegment, Equatable {
     let id: UUID = UUID()
     var asset: AVAsset
     var timeRange: CMTimeRange
+    
+    static func == (lhs: PCutVideoSegment, rhs: PCutVideoSegment) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
-struct PCutTextSegment: PCutSegment {
+struct PCutTextSegment: PCutSegment, Equatable {
     let id: UUID = UUID()
     var string: String = ""
     var fontSize: CGFloat = 0
@@ -27,4 +31,8 @@ struct PCutTextSegment: PCutSegment {
     var backgroundColor: UIColor = .black
     var duration: CMTime = .zero
     var startTime: CMTime = .zero
+    
+    static func == (lhs: PCutTextSegment, rhs: PCutTextSegment) -> Bool {
+        lhs.id == rhs.id
+    }
 }

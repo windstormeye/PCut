@@ -11,7 +11,10 @@ import CoreMedia
 
 class PCutTextLayer: CALayer {
     var textSegment = PCutTextSegment()
-    var textLayer = CATextLayer()
+    private var textLayer = CATextLayer()
+    private var inAnimation = CABasicAnimation();
+    private var outAnimation = CABasicAnimation();
+    
     
     override init() {
         super.init()
@@ -38,27 +41,41 @@ class PCutTextLayer: CALayer {
         textLayer.frame = CGRect(x: 0, y: 0, width: width, height: textSegment.fontSize)
         
         
-        let fadeInAnimation = CABasicAnimation(keyPath: "opacity")
-        fadeInAnimation.fromValue = 0
-        fadeInAnimation.toValue = 1
-        fadeInAnimation.isAdditive = false
-        fadeInAnimation.isRemovedOnCompletion = false
-        fadeInAnimation.beginTime = CMTimeGetSeconds(textSegment.startTime)
-        fadeInAnimation.duration = 0.1
-        fadeInAnimation.autoreverses = false
-        fadeInAnimation.fillMode = CAMediaTimingFillMode.both
-        textLayer.add(fadeInAnimation, forKey: "opacity")
+        inAnimation = CABasicAnimation(keyPath: "opacity")
+        inAnimation.fromValue = 0
+        inAnimation.toValue = 1
+        inAnimation.isAdditive = false
+        inAnimation.isRemovedOnCompletion = false
+        inAnimation.beginTime = CMTimeGetSeconds(textSegment.startTime)
+        inAnimation.duration = 0.1
+        inAnimation.autoreverses = false
+        inAnimation.fillMode = CAMediaTimingFillMode.both
+        textLayer.add(inAnimation, forKey: "opacity")
         
-        let fadeOutAnimation = CABasicAnimation(keyPath: "opacity")
-        fadeOutAnimation.fromValue = 1
-        fadeOutAnimation.toValue = 0
-        fadeOutAnimation.isAdditive = false
-        fadeOutAnimation.isRemovedOnCompletion = false
-        fadeOutAnimation.beginTime = CMTimeGetSeconds(CMTimeAdd(textSegment.startTime,
+        outAnimation = CABasicAnimation(keyPath: "opacity")
+        outAnimation.fromValue = 1
+        outAnimation.toValue = 0
+        outAnimation.isAdditive = false
+        outAnimation.isRemovedOnCompletion = false
+        outAnimation.beginTime = CMTimeGetSeconds(CMTimeAdd(textSegment.startTime,
                                                                 textSegment.duration))
-        fadeOutAnimation.duration = 0.1
-        fadeOutAnimation.autoreverses = false
-        fadeOutAnimation.fillMode = CAMediaTimingFillMode.both
-        add(fadeOutAnimation, forKey: "opacity")
+        outAnimation.duration = 0.1
+        outAnimation.autoreverses = false
+        outAnimation.fillMode = CAMediaTimingFillMode.both
+        add(outAnimation, forKey: "opacity")
+    }
+    
+    func updateUI() {
+        textLayer.string = textSegment.string
+        textLayer.fontSize = textSegment.fontSize;
+        textLayer.alignmentMode = CATextLayerAlignmentMode.center
+        let width = textSegment.string.textAutoWidth(height: textSegment.fontSize,
+                                                      font: UIFont.systemFont(ofSize: textSegment.fontSize))
+        textLayer.frame = CGRect(x: 0, y: 0, width: width, height: textSegment.fontSize)
+        
+        inAnimation.beginTime = CMTimeGetSeconds(textSegment.startTime)
+        outAnimation.beginTime = CMTimeGetSeconds(CMTimeAdd(textSegment.startTime,
+                                                                textSegment.duration))
+
     }
 }

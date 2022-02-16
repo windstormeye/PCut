@@ -42,9 +42,14 @@ class PCutPlayer: UIView {
         playerLayer?.videoGravity = .resizeAspectFill
         layer.addSublayer(playerLayer!)
         
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback)
+        } catch {
+            print("音频设置失败：" + error.localizedDescription)
+        }
+        
         playerItemKVOToken = self.playerItem?.observe(\.status, changeHandler: { _playerItem, value in
             if (_playerItem.status == .readyToPlay) {
-//                self.player?.play()
                 self.delegate?.readyToPlay(self)
             }
         })

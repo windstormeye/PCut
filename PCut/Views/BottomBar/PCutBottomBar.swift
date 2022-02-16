@@ -51,6 +51,7 @@ extension PCutBottomBar: UICollectionViewDataSource {
         var cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseId,
                                                       for: indexPath) as! PCutBottomBarItemView
         cell.item = items[indexPath.row]
+        // TODO: check.
         return cell
     }
     
