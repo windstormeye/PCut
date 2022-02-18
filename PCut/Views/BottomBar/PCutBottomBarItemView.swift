@@ -16,31 +16,28 @@ class PCutBottomBarItemView: UICollectionViewCell {
         }
     }
     
-    init() {
-        super.init(frame: .zero)
-        setupUI()
-    }
-    
-    convenience init(item: PCutBottomItem) {
-        self.init()
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setupUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
     private func setupUI() {
         addSubview(itemImageView)
         
         itemImageView.snp.makeConstraints { make in
-            make.size.equalTo(50)
+            make.size.equalTo(30)
             make.center.equalToSuperview()
         }
+        
+        itemImageView.contentMode = .scaleAspectFill
+        itemImageView.tintColor = .white
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        itemImageView.image = UIImage(named: item.itemImageName)
+        itemImageView.image = UIImage(systemName: item.itemImageName)
     }
 }

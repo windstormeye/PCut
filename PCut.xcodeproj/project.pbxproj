@@ -16,7 +16,7 @@
 		0CE3FE8C2730F85E000E61C0 /* PCutVideoTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CE3FE8B2730F85E000E61C0 /* PCutVideoTrack.swift */; };
 		0CF6F4322721B0E7008034FC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF6F4312721B0E7008034FC /* AppDelegate.swift */; };
 		0CF6F4342721B0E7008034FC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF6F4332721B0E7008034FC /* SceneDelegate.swift */; };
-		0CF6F4362721B0E7008034FC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF6F4352721B0E7008034FC /* ViewController.swift */; };
+		0CF6F4362721B0E7008034FC /* EditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CF6F4352721B0E7008034FC /* EditorViewController.swift */; };
 		0CF6F4392721B0E7008034FC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0CF6F4372721B0E7008034FC /* Main.storyboard */; };
 		0CF6F43B2721B0EA008034FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0CF6F43A2721B0EA008034FC /* Assets.xcassets */; };
 		0CF6F43E2721B0EA008034FC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0CF6F43C2721B0EA008034FC /* LaunchScreen.storyboard */; };
@@ -47,7 +47,7 @@
 		0CF6F42E2721B0E7008034FC /* PCut.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PCut.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0CF6F4312721B0E7008034FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0CF6F4332721B0E7008034FC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		0CF6F4352721B0E7008034FC /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		0CF6F4352721B0E7008034FC /* EditorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorViewController.swift; sourceTree = "<group>"; };
 		0CF6F4382721B0E7008034FC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		0CF6F43A2721B0EA008034FC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0CF6F43D2721B0EA008034FC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -186,7 +186,7 @@
 			children = (
 				0CF6F4312721B0E7008034FC /* AppDelegate.swift */,
 				0CF6F4332721B0E7008034FC /* SceneDelegate.swift */,
-				0CF6F4352721B0E7008034FC /* ViewController.swift */,
+				0CF6F4352721B0E7008034FC /* EditorViewController.swift */,
 				2B17ED802736CFA1002A57D4 /* Tool */,
 				0C3E96C0272AF40100B96EAB /* Views */,
 				0CF6F44B2724FD79008034FC /* Models */,
@@ -395,7 +395,7 @@
 			files = (
 				A68B7115275C746A006D36CD /* PCutPlayerView.swift in Sources */,
 				0CF6F44F2724FFD3008034FC /* PCutThumbnailManager.swift in Sources */,
-				0CF6F4362721B0E7008034FC /* ViewController.swift in Sources */,
+				0CF6F4362721B0E7008034FC /* EditorViewController.swift in Sources */,
 				A68B7111275C6E3E006D36CD /* PCutTextSegmentManager.swift in Sources */,
 				0CD3788C2734C1B80089F0CD /* PCutTimelineIndicator.swift in Sources */,
 				A6FEA68227473E19004042C6 /* String+Extension.swift in Sources */,

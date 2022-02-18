@@ -7,21 +7,17 @@
 
 import UIKit
 
-class PCutBottomBar: UIView {
+class PCutBottomSegmentBar: UISegmentedControl {
+    var segmentItems = [PCutBottomItem]()
 
-    let reuseId = "PCutButtonBarItemView"
-    
-    var itemCollectionView = UICollectionView()
-    var items = [PCutBottomItem]()
-    
     init() {
-        super.init(frame: .zero)
-        setupUI()
+        super.init(items: [])
     }
     
     convenience init(items: [PCutBottomItem]) {
         self.init()
-        self.items = items
+        self.segmentItems = items
+        setupUI()
     }
     
     required init?(coder: NSCoder) {
@@ -29,35 +25,26 @@ class PCutBottomBar: UIView {
     }
     
     private func setupUI() {
-        backgroundColor = .clear
         
-        itemCollectionView.delegate = self
-        itemCollectionView.dataSource = self
-        itemCollectionView.register(PCutBottomBarItemView.self,
-                                    forCellWithReuseIdentifier: reuseId)
+        backgroundColor = .black
+        selectedSegmentTintColor = UIColor(red: 50/255, green: 50/255, blue: 50/255, alpha: 1)
+        
+        
+        for (itemIndex, item) in segmentItems.enumerated() {
+            let action = UIAction(title: item.itemTitle,
+                                  image: UIImage(systemName: item.itemImageName)?.withTintColor(.white, renderingMode: .alwaysOriginal),
+                                  identifier: .init(rawValue: item.itemTitle),
+                                  discoverabilityTitle: nil,
+                                  attributes: [],
+                                  state: .on) { a in
+                print(itemIndex)
+            }
+            insertSegment(action: action, at: itemIndex, animated: true)
+        }
+        
+        selectedSegmentIndex = 0
     }
 }
-
-extension PCutBottomBar: UICollectionViewDelegate {
-    
-}
-
-extension PCutBottomBar: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return items.count
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        var cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseId,
-                                                      for: indexPath) as! PCutBottomBarItemView
-        cell.item = items[indexPath.row]
-        // TODO: check.
-        return cell
-    }
-    
-    
-}
-
 
 struct PCutBottomItem {
     var itemTitle = "item"

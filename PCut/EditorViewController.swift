@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  EditorViewController.swift
 //  PCut
 //
 //  Created by 翁培钧 on 2021/10/21.
@@ -11,17 +11,13 @@ import Vision
 import Photos
 
 
-class ViewController: UIViewController {
+class EditorViewController: UIViewController {
 
     let thumbnailWidth: CGFloat = 50
     let composition = AVMutableComposition()
     let videoOutput = AVPlayerItemVideoOutput()
     
     var thumbnailSrollView: UIScrollView?
-    var detectedFaceRectangleShapeLayer: CAShapeLayer?
-    var trackingRequests: [VNTrackObjectRequest]?
-    var detectionRequests: [VNDetectFaceRectanglesRequest]?
-    var emoji: UILabel?
     var thumbnailManager: PCutThumbnailManager?
     var indicator: PCutTimelineIndicator?
     var playerControlView = PCutPlayerCotrolView()
@@ -32,6 +28,7 @@ class ViewController: UIViewController {
     var isSeekInProgress = false
     var playerCurrentItemStatus: AVPlayerItem.Status = .unknown
     var preview = PCutPreview()
+    var bottomBar = PCutBottomSegmentBar()
     
     var core = PCutCore()
     /// frame data source
@@ -40,66 +37,40 @@ class ViewController: UIViewController {
     var screenThumbnails = [PCutThumbnail]()
     var videoTrackSegmentViews = [PCutVideoTrackSegmentView]()
     
-    lazy var sequenceRequestHandler = VNSequenceRequestHandler()
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        initView()
+        initLayout()
+        
+        observe()
+    }
+    
+    private func initView() {
         view.backgroundColor = UIColor.black
+        
+        core.player.delegate = self
+        thumbnailManager = PCutThumbnailManager(core)
         
         imagePickerController.delegate = self
         imagePickerController.allowsEditing = true
         imagePickerController.mediaTypes = ["public.movie"]
         
         view.addSubview(core.player)
-        let playerHeight = CGFloat(UIScreen.main.bounds.size.width / 16 * 10)
-        core.player.snp.makeConstraints { make in
-            make.width.equalTo(view)
-            make.height.equalTo(playerHeight)
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
-        }
-        
         view.addSubview(preview)
-        preview.snp.makeConstraints({ make in
-            make.size.equalTo(core.player)
-            make.top.equalTo(core.player)
-        })
-        
-//        core.avPlayer().currentItem?.add(videoOutput)
-        core.player.delegate = self
-        
-        thumbnailManager = PCutThumbnailManager(core)
-        
-        // TODO: displayLink 方法内部逻辑会抢占 UI 线程导致卡顿，需要查一下为啥
-//        let displayLink = CADisplayLink(target: self, selector: #selector(ViewController.displayLinkRefresh))
-//        displayLink.add(to: .main, forMode: .common)
-        
-        let _playerControlView = PCutPlayerCotrolView(core: core)
-        playerControlView = _playerControlView
+
+
+        playerControlView = PCutPlayerCotrolView(core: core)
         view.addSubview(playerControlView)
-        playerControlView.snp.makeConstraints { make in
-            make.top.equalTo(core.player.snp.bottom)
-            make.width.equalTo(view)
-            make.height.equalTo(70)
-        }
         
         view.addSubview(importVideoView)
         importVideoView.core = core
         importVideoView.deletega = self
-        importVideoView.snp.makeConstraints { make in
-            make.top.equalTo(playerControlView.snp.bottom)
-            make.width.equalToSuperview()
-            make.height.equalTo(100)
-        }
+        
         
         thumbnailSrollView = UIScrollView()
         view.addSubview(thumbnailSrollView!)
-        thumbnailSrollView?.snp.makeConstraints({ make in
-            make.top.equalTo(importVideoView).offset(20)
-            make.width.equalToSuperview()
-            make.height.equalTo(thumbnailWidth)
-        })
         thumbnailSrollView?.showsVerticalScrollIndicator = false
         thumbnailSrollView?.showsHorizontalScrollIndicator = false
         thumbnailSrollView?.delegate = self
@@ -109,80 +80,80 @@ class ViewController: UIViewController {
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchGesture(gesture:)))
         thumbnailSrollView?.addGestureRecognizer(pinchGesture)
 //        thumbnailSrollView?.panGestureRecognizer.require(toFail: pinchGesture)
-        
-        emoji = UILabel()
-        emoji?.text = "😆"
-        emoji?.font = UIFont.boldSystemFont(ofSize: 100)
-        emoji?.sizeToFit()
-//        view.addSubview(emoji!)
-        
-        let durationLabel = UILabel()
-        durationLabel.text = String(format: "%.2fs", CMTimeGetSeconds(self.composition.duration))
-        durationLabel.font = UIFont.systemFont(ofSize: 11)
-        durationLabel.sizeToFit()
-        durationLabel.frame = CGRect(x: (UIScreen.main.bounds.width - durationLabel.frame.size.width) / 2, y: 20, width: durationLabel.frame.size.width, height: durationLabel.frame.size.height)
-        view.addSubview(durationLabel)
-        
-        let faceRectangleShapeLayer = CAShapeLayer()
-        faceRectangleShapeLayer.bounds = CGRect(x: -core.player.bounds.size.width/2,
-                                                y: -core.player.bounds.size.height,
-                                                width: core.player.bounds.size.width,
-                                                height: core.player.bounds.size.height)
-        faceRectangleShapeLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        faceRectangleShapeLayer.fillColor = nil
-        faceRectangleShapeLayer.strokeColor = UIColor.green.cgColor
-        faceRectangleShapeLayer.lineWidth = 2
-        faceRectangleShapeLayer.shadowOpacity = 0.7
-        faceRectangleShapeLayer.shadowRadius = 5
-        detectedFaceRectangleShapeLayer = faceRectangleShapeLayer
-        view.layer.addSublayer(detectedFaceRectangleShapeLayer!)
-        // TODO: 坐标问题
-        
-        var requests = [VNTrackObjectRequest]()
-        let faceDetectionRequest = VNDetectFaceRectanglesRequest(completionHandler: { (request, error) in
-            
-            if error != nil {
-                print("FaceDetection error: \(String(describing: error)).")
-            }
-            
-            guard let faceDetectionRequest = request as? VNDetectFaceRectanglesRequest,
-                  let results = faceDetectionRequest.results else {
-                    return
-            }
-            DispatchQueue.main.async {
-                // Add the observations to the tracking list
-                for observation in results {
-                    let faceTrackingRequest = VNTrackObjectRequest(detectedObjectObservation: observation)
-                    requests.append(faceTrackingRequest)
-                }
-                self.trackingRequests = requests
-            }
-        })
-        detectionRequests = [faceDetectionRequest]
-        sequenceRequestHandler = VNSequenceRequestHandler()
+    
         
         indicator = PCutTimelineIndicator()
         view.addSubview(indicator!)
+        indicator?.isHidden = true
+        
+        view.addSubview(timelineImportVideoButton)
+
+        timelineImportVideoButton.isHidden = true
+        timelineImportVideoButton.addTarget(self,
+                                            action: #selector(EditorViewController.timelineImportVideo),
+                                            for: .touchUpInside)
+        
+        let textItem = PCutBottomItem(itemTitle: "文字", itemImageName: "textformat.alt")
+        let stickerItem = PCutBottomItem(itemTitle: "贴纸", itemImageName: "theatermasks.fill")
+        let audioItem = PCutBottomItem(itemTitle: "音效", itemImageName: "music.quarternote.3")
+        let filterItem = PCutBottomItem(itemTitle: "特效", itemImageName: "wand.and.stars.inverse")
+        let videoItem = PCutBottomItem(itemTitle: "视频", itemImageName: "crop")
+//        bottomBar = PCutBottomBar(items: [videoItem, textItem, stickerItem, audioItem, filterItem])
+        bottomBar = PCutBottomSegmentBar(items: [videoItem, textItem, stickerItem, audioItem, filterItem])
+        view.addSubview(bottomBar)
+    }
+    
+    private func initLayout() {
+        
+        let playerHeight = CGFloat(UIScreen.main.bounds.size.width / 16 * 10)
+        core.player.snp.makeConstraints { make in
+            make.width.equalTo(view)
+            make.height.equalTo(playerHeight)
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
+        }
+        
+        preview.snp.makeConstraints({ make in
+            make.size.equalTo(core.player)
+            make.top.equalTo(core.player)
+        })
+        
+        
+        playerControlView.snp.makeConstraints { make in
+            make.top.equalTo(core.player.snp.bottom)
+            make.width.equalTo(view)
+            make.height.equalTo(70)
+        }
+        
+        importVideoView.snp.makeConstraints { make in
+            make.top.equalTo(playerControlView.snp.bottom)
+            make.width.equalToSuperview()
+            make.height.equalTo(100)
+        }
+        
+        thumbnailSrollView?.snp.makeConstraints({ make in
+            make.top.equalTo(importVideoView).offset(20)
+            make.width.equalToSuperview()
+            make.height.equalTo(thumbnailWidth)
+        })
+        
         indicator?.snp.makeConstraints({ make in
             make.centerX.equalToSuperview()
             make.width.equalTo(1)
             make.height.equalTo(thumbnailSrollView!.snp.height).offset(40)
             make.top.equalTo(thumbnailSrollView!.snp.top).offset(-20)
         })
-        indicator?.isHidden = true
         
-        view.addSubview(timelineImportVideoButton)
         timelineImportVideoButton.snp.makeConstraints { make in
             make.right.equalToSuperview()
             make.size.equalTo(50)
             make.centerY.equalTo(self.thumbnailSrollView!)
         }
-        timelineImportVideoButton.isHidden = true
-        timelineImportVideoButton.addTarget(self,
-                                            action: #selector(ViewController.timelineImportVideo),
-                                            for: .touchUpInside)
         
-        observe()
+        bottomBar.snp.makeConstraints { make in
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
+            make.width.equalToSuperview()
+            make.height.equalTo(50)
+        }
     }
     
     func observe() {
@@ -202,147 +173,6 @@ class ViewController: UIViewController {
             self.thumbnailSrollView?.contentOffset = CGPoint(x: contentOffsetX, y: 0)
         }
     }
-    
-    @objc
-    func displayLinkRefresh() {
-        let itemTime = videoOutput.itemTime(forHostTime: CACurrentMediaTime())
-        if videoOutput.hasNewPixelBuffer(forItemTime: itemTime) {
-            guard let pixelBuffer = videoOutput.copyPixelBuffer(forItemTime: itemTime, itemTimeForDisplay: nil) else {
-                return
-            }
-            pixelBufferRefresh(pixelBuffer)
-        }
-    }
-    
-    func pixelBufferRefresh(_ pixelBuffer: CVPixelBuffer) {
-        guard let requests = self.trackingRequests, !requests.isEmpty else {
-            // No tracking object detected, so perform initial detection
-            let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer,
-                                                            orientation: .up,
-                                                            options: [:])
-            
-            do {
-                guard let detectRequests = self.detectionRequests else {
-                    return
-                }
-                try imageRequestHandler.perform(detectRequests)
-            } catch let error as NSError {
-                NSLog("Failed to perform FaceRectangleRequest: %@", error)
-            }
-            return
-        }
-        
-        do {
-            try self.sequenceRequestHandler.perform(requests,
-                                                    on: pixelBuffer,
-                                                    orientation: .up)
-        } catch let error as NSError {
-            NSLog("Failed to perform SequenceRequest: %@", error)
-        }
-        
-        // Setup the next round of tracking.
-        var newTrackingRequests = [VNTrackObjectRequest]()
-        for trackingRequest in requests {
-            
-            guard let results = trackingRequest.results else {
-                return
-            }
-            
-            guard let observation = results[0] as? VNDetectedObjectObservation else {
-                return
-            }
-            
-            if !trackingRequest.isLastFrame {
-                if observation.confidence > 0.3 {
-                    trackingRequest.inputObservation = observation
-                } else {
-                    trackingRequest.isLastFrame = true
-                }
-                newTrackingRequests.append(trackingRequest)
-            }
-        }
-        self.trackingRequests = newTrackingRequests
-        
-        if newTrackingRequests.isEmpty {
-            // Nothing to track, so abort.
-            return
-        }
-        
-        // Perform face landmark tracking on detected faces.
-        var faceLandmarkRequests = [VNDetectFaceLandmarksRequest]()
-        
-        // Perform landmark detection on tracked faces.
-        for trackingRequest in newTrackingRequests {
-            
-            let faceLandmarksRequest = VNDetectFaceLandmarksRequest(completionHandler: { (request, error) in
-                
-                if error != nil {
-                    print("FaceLandmarks error: \(String(describing: error)).")
-                }
-                
-                guard let landmarksRequest = request as? VNDetectFaceLandmarksRequest,
-                      let results = landmarksRequest.results else {
-                        return
-                }
-                
-                // Perform all UI updates (drawing) on the main queue, not the background queue on which this handler is being called.
-                DispatchQueue.main.async {
-                    self.drawFaceObservations(results)
-                }
-            })
-            
-            guard let trackingResults = trackingRequest.results else {
-                return
-            }
-            
-            guard let observation = trackingResults[0] as? VNDetectedObjectObservation else {
-                return
-            }
-            let faceObservation = VNFaceObservation(boundingBox: observation.boundingBox)
-            faceLandmarksRequest.inputFaceObservations = [faceObservation]
-            
-            // Continue to track detected facial landmarks.
-            faceLandmarkRequests.append(faceLandmarksRequest)
-            
-            let imageRequestHandler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer,
-                                                            orientation: .up,
-                                                            options: [:])
-            
-            do {
-                try imageRequestHandler.perform(faceLandmarkRequests)
-            } catch let error as NSError {
-                NSLog("Failed to perform FaceLandmarkRequest: %@", error)
-            }
-        }
-    }
-    
-    fileprivate func drawFaceObservations(_ faceObservations: [VNFaceObservation]) {
-        CATransaction.begin()
-        
-        CATransaction.setValue(NSNumber(value: true), forKey: kCATransactionDisableActions)
-        let faceRectanglePath = CGMutablePath()
-        for faceObservation in faceObservations {
-            self.addIndicators(to: faceRectanglePath,
-                               for: faceObservation)
-        }
-        
-        detectedFaceRectangleShapeLayer?.path = faceRectanglePath
-                
-        CATransaction.commit()
-    }
-    
-    fileprivate func addIndicators(to faceRectanglePath: CGMutablePath, for faceObservation: VNFaceObservation) {
-        let faceBounds = VNImageRectForNormalizedRect(faceObservation.boundingBox,
-                                                      Int(core.player.bounds.size.width),
-                                                      Int(core.player.bounds.size.width))
-        
-        faceRectanglePath.addRect(faceBounds)
-        emoji?.frame = CGRect(x: faceBounds.origin.x,
-                              y: faceBounds.origin.y,
-                              width: emoji!.bounds.size.width,
-                              height: emoji!.bounds.size.height)
-    }
-    
     
     func generateThumbnails(_ videoSegmentView: PCutVideoTrackSegmentView) {
         let thumbnailGenarater = AVAssetImageGenerator(asset: videoSegmentView.videoSegment!.asset)
@@ -489,13 +319,13 @@ class ViewController: UIViewController {
 }
 
 /// MARK: - PCutPlayerProtocol
-extension ViewController: PCutPlayerProtocol {
+extension EditorViewController: PCutPlayerProtocol {
     func readyToPlay(_ player: PCutPlayer) {
 //        generateThumbnails()
     }
 }
 
-extension ViewController: UIScrollViewDelegate {
+extension EditorViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if (core.isPlaying()) {
             return
@@ -515,14 +345,14 @@ extension ViewController: UIScrollViewDelegate {
     }
 }
 
-extension ViewController: PCutImportVideoViewDelegate {
+extension EditorViewController: PCutImportVideoViewDelegate {
     func importVideo(_ view: PCutImportVideoView) {
         self.present(self.imagePickerController, animated: true, completion: nil)
     }
 }
 
 
-extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+extension EditorViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController,
                                didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         let asset = AVAsset(url: info[UIImagePickerController.InfoKey.mediaURL] as! URL)
@@ -547,13 +377,13 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
                                           startTime: CMTimeMake(value: 2, timescale: 1))
         core.timeline.textSegments.append(textSegment)
         
-        core.mixAssetsVideoExport()
+//        core.mixAssetsVideoExport()
         
         self.imagePickerController.dismiss(animated: true, completion: nil)
     }
 }
 
-extension ViewController {
+extension EditorViewController {
     @objc
     private func timelineImportVideo() {
         self.present(self.imagePickerController, animated: true, completion: nil)
