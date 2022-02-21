@@ -9,7 +9,8 @@ import UIKit
 
 class PCutBottomSegmentBar: UISegmentedControl {
     var segmentItems = [PCutBottomItem]()
-
+    var selectedIndexBlock: ((_ selectedIndex: Int) -> ())?
+    
     init() {
         super.init(items: [])
     }
@@ -36,8 +37,11 @@ class PCutBottomSegmentBar: UISegmentedControl {
                                   identifier: .init(rawValue: item.itemTitle),
                                   discoverabilityTitle: nil,
                                   attributes: [],
-                                  state: .on) { a in
-                print(itemIndex)
+                                  state: .on) { [weak self] itemAction in
+                guard let self = self else { return }
+                if (self.selectedIndexBlock != nil) {
+                    self.selectedIndexBlock!(itemIndex)
+                }
             }
             insertSegment(action: action, at: itemIndex, animated: true)
         }

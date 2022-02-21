@@ -26,6 +26,9 @@
 		2B17ED8527377317002A57D4 /* PCutImportVideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B17ED8427377317002A57D4 /* PCutImportVideoView.swift */; };
 		A60BC0432741F4A200D479DA /* PCutTextLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60BC0422741F4A200D479DA /* PCutTextLayer.swift */; };
 		A64E5BDA273C09C800E98BD4 /* PCutPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64E5BD9273C09C800E98BD4 /* PCutPreview.swift */; };
+		A64EEC0427C3EBE700B86D4A /* EditorViewController+Action.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64EEC0327C3EBE700B86D4A /* EditorViewController+Action.swift */; };
+		A64EEC0627C3EC9500B86D4A /* EditorViewController+Track.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64EEC0527C3EC9500B86D4A /* EditorViewController+Track.swift */; };
+		A64EEC0827C3EDDF00B86D4A /* EditorViewController+Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64EEC0727C3EDDF00B86D4A /* EditorViewController+Player.swift */; };
 		A68B7111275C6E3E006D36CD /* PCutTextSegmentManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A68B7110275C6E3E006D36CD /* PCutTextSegmentManager.swift */; };
 		A68B7115275C746A006D36CD /* PCutPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A68B7114275C746A006D36CD /* PCutPlayerView.swift */; };
 		A6CA70052739680200E590E3 /* PCutTimelineImportVideoButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6CA70042739680200E590E3 /* PCutTimelineImportVideoButton.swift */; };
@@ -60,6 +63,9 @@
 		7F326448B9C3BDF22061512F /* Pods-PCut.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PCut.release.xcconfig"; path = "Target Support Files/Pods-PCut/Pods-PCut.release.xcconfig"; sourceTree = "<group>"; };
 		A60BC0422741F4A200D479DA /* PCutTextLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutTextLayer.swift; sourceTree = "<group>"; };
 		A64E5BD9273C09C800E98BD4 /* PCutPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutPreview.swift; sourceTree = "<group>"; };
+		A64EEC0327C3EBE700B86D4A /* EditorViewController+Action.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EditorViewController+Action.swift"; sourceTree = "<group>"; };
+		A64EEC0527C3EC9500B86D4A /* EditorViewController+Track.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EditorViewController+Track.swift"; sourceTree = "<group>"; };
+		A64EEC0727C3EDDF00B86D4A /* EditorViewController+Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "EditorViewController+Player.swift"; sourceTree = "<group>"; };
 		A68B7110275C6E3E006D36CD /* PCutTextSegmentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutTextSegmentManager.swift; sourceTree = "<group>"; };
 		A68B7114275C746A006D36CD /* PCutPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutPlayerView.swift; sourceTree = "<group>"; };
 		A6CA70042739680200E590E3 /* PCutTimelineImportVideoButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCutTimelineImportVideoButton.swift; sourceTree = "<group>"; };
@@ -85,6 +91,7 @@
 		0C3E96C0272AF40100B96EAB /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				A64EEC0927C3F0F000B86D4A /* Editor */,
 				A6E7F982274E91F3007EEE64 /* BottomBar */,
 				A60BC0412741F48100D479DA /* Preview */,
 				A60BC0402741F2F000D479DA /* Text */,
@@ -186,7 +193,6 @@
 			children = (
 				0CF6F4312721B0E7008034FC /* AppDelegate.swift */,
 				0CF6F4332721B0E7008034FC /* SceneDelegate.swift */,
-				0CF6F4352721B0E7008034FC /* EditorViewController.swift */,
 				2B17ED802736CFA1002A57D4 /* Tool */,
 				0C3E96C0272AF40100B96EAB /* Views */,
 				0CF6F44B2724FD79008034FC /* Models */,
@@ -268,6 +274,17 @@
 				A64E5BD9273C09C800E98BD4 /* PCutPreview.swift */,
 			);
 			path = Preview;
+			sourceTree = "<group>";
+		};
+		A64EEC0927C3F0F000B86D4A /* Editor */ = {
+			isa = PBXGroup;
+			children = (
+				0CF6F4352721B0E7008034FC /* EditorViewController.swift */,
+				A64EEC0327C3EBE700B86D4A /* EditorViewController+Action.swift */,
+				A64EEC0527C3EC9500B86D4A /* EditorViewController+Track.swift */,
+				A64EEC0727C3EDDF00B86D4A /* EditorViewController+Player.swift */,
+			);
+			path = Editor;
 			sourceTree = "<group>";
 		};
 		A6E7F982274E91F3007EEE64 /* BottomBar */ = {
@@ -397,11 +414,14 @@
 				0CF6F44F2724FFD3008034FC /* PCutThumbnailManager.swift in Sources */,
 				0CF6F4362721B0E7008034FC /* EditorViewController.swift in Sources */,
 				A68B7111275C6E3E006D36CD /* PCutTextSegmentManager.swift in Sources */,
+				A64EEC0627C3EC9500B86D4A /* EditorViewController+Track.swift in Sources */,
 				0CD3788C2734C1B80089F0CD /* PCutTimelineIndicator.swift in Sources */,
 				A6FEA68227473E19004042C6 /* String+Extension.swift in Sources */,
 				A6E7F984274F1F0A007EEE64 /* PCutBottomBar.swift in Sources */,
+				A64EEC0827C3EDDF00B86D4A /* EditorViewController+Player.swift in Sources */,
 				0C3E96CA272B896300B96EAB /* PCutTimeline.swift in Sources */,
 				0CF6F4322721B0E7008034FC /* AppDelegate.swift in Sources */,
+				A64EEC0427C3EBE700B86D4A /* EditorViewController+Action.swift in Sources */,
 				0CE3FE86272F840B000E61C0 /* PCutPlayer.swift in Sources */,
 				A60BC0432741F4A200D479DA /* PCutTextLayer.swift in Sources */,
 				A6E7F988274F27AA007EEE64 /* PCutBottomBarItemView.swift in Sources */,
