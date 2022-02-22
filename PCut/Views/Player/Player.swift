@@ -9,19 +9,19 @@ import Foundation
 import AVFoundation
 import UIKit
 
-protocol PCutPlayerProtocol {
-    func readyToPlay(_ player: PCutPlayer)
+protocol PlayerProtocol {
+    func readyToPlay(_ player: Player)
 }
 
-extension PCutPlayerProtocol {
-    func readyToPlay(_ player: PCutPlayer) {}
+extension PlayerProtocol {
+    func readyToPlay(_ player: Player) {}
 }
 
-class PCutPlayer: UIView {
+class Player: UIView {
     var player: AVPlayer?
     var duration: CGFloat?
     var size: CGSize?
-    var delegate: PCutPlayerProtocol?
+    var delegate: PlayerProtocol?
     var playerLayer: AVPlayerLayer?
     
     private var playerItemKVOToken: NSKeyValueObservation?
@@ -69,7 +69,7 @@ class PCutPlayer: UIView {
 }
 
 /// MARK: - Play
-extension PCutPlayer {
+extension Player {
     func play() {
         player?.play()
     }

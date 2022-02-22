@@ -1,16 +1,22 @@
 //
-//  PCutPlayerView.swift
+//  PCutTimelineIndicator.swift
 //  PCut
 //
-//  Created by wengpeijun on 2021/12/5.
+//  Created by PJHubs on 2021/11/5.
 //
 
 import Foundation
 import UIKit
 
-class PCutPlayerView: UIView {
+class TimelineIndicator: UIView {
     override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+    
+    init() {
         super.init(frame: .zero)
+        setupUI()
     }
     
     required init?(coder: NSCoder) {
@@ -18,6 +24,6 @@ class PCutPlayerView: UIView {
     }
     
     private func setupUI() {
-        
+        backgroundColor = .white
     }
 }

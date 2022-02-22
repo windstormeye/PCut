@@ -46,8 +46,8 @@
             filePath = "PCut/Views/BottomBar/PCutBottomBar.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "35"
-            endingLineNumber = "35"
+            startingLineNumber = "40"
+            endingLineNumber = "40"
             landmarkName = "setupUI()"
             landmarkType = "7">
          </BreakpointContent>

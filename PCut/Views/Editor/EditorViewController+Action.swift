@@ -14,8 +14,18 @@ extension EditorViewController {
         self.present(self.imagePickerController, animated: true, completion: nil)
     }
     
-    func itemAction(_ itemIndex: Int) {
-        
+    func itemAction(_ item: PCutBottomItem) {
+        switch (item.itemIdentifier) {
+        case BarItem.textItem.rawValue:
+            
+            break
+        case BarItem.videoItem.rawValue: break
+        case BarItem.stickerItem.rawValue: break
+        case BarItem.audioItem.rawValue: break
+        case BarItem.effectItem.rawValue: break
+        default:
+            break
+        }
     }
     
     func observe() {
@@ -55,8 +65,8 @@ extension EditorViewController {
     }
 }
 
-extension EditorViewController: PCutImportVideoViewDelegate {
-    func importVideo(_ view: PCutImportVideoView) {
+extension EditorViewController: ImportVideoViewDelegate {
+    func importVideo(_ view: ImportVideoView) {
         self.present(self.imagePickerController, animated: true, completion: nil)
     }
 }
@@ -65,8 +75,8 @@ extension EditorViewController: UIImagePickerControllerDelegate, UINavigationCon
     func imagePickerController(_ picker: UIImagePickerController,
                                didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         let asset = AVAsset(url: info[UIImagePickerController.InfoKey.mediaURL] as! URL)
-        let videoSegment = PCutVideoSegment(asset: asset, timeRange: CMTimeRange(start: .zero, duration: asset.duration))
-        let videoTrackSegmentView = PCutVideoTrackSegmentView(videoSegment: videoSegment)
+        let videoSegment = VideoSegment(asset: asset, timeRange: CMTimeRange(start: .zero, duration: asset.duration))
+        let videoTrackSegmentView = VideoTrackSegmentView(videoSegment: videoSegment)
         thumbnailSrollView?.addSubview(videoTrackSegmentView)
         
         var insertTime = CMTime.zero
@@ -78,7 +88,7 @@ extension EditorViewController: UIImagePickerControllerDelegate, UINavigationCon
                                 segmentVideo: videoSegment)
         generateThumbnails(videoTrackSegmentView)
         
-        let textSegment = PCutTextSegment(string: "233",
+        let textSegment = TextSegment(string: "233",
                                           fontSize: 75,
                                           textColor: .white,
                                           backgroundColor: .black,

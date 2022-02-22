@@ -9,21 +9,21 @@ import Foundation
 import AVFoundation
 import UIKit
 
-protocol PCutSegment {
+protocol Segment {
     var id: UUID { get }
 }
 
-struct PCutVideoSegment: PCutSegment, Equatable {
+struct VideoSegment: Segment, Equatable {
     let id: UUID = UUID()
     var asset: AVAsset
     var timeRange: CMTimeRange
     
-    static func == (lhs: PCutVideoSegment, rhs: PCutVideoSegment) -> Bool {
+    static func == (lhs: VideoSegment, rhs: VideoSegment) -> Bool {
         lhs.id == rhs.id
     }
 }
 
-struct PCutTextSegment: PCutSegment, Equatable {
+struct TextSegment: Segment, Equatable {
     let id: UUID = UUID()
     var string: String = ""
     var fontSize: CGFloat = 0
@@ -32,7 +32,7 @@ struct PCutTextSegment: PCutSegment, Equatable {
     var duration: CMTime = .zero
     var startTime: CMTime = .zero
     
-    static func == (lhs: PCutTextSegment, rhs: PCutTextSegment) -> Bool {
+    static func == (lhs: TextSegment, rhs: TextSegment) -> Bool {
         lhs.id == rhs.id
     }
 }

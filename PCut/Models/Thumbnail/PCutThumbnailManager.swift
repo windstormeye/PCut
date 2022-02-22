@@ -9,11 +9,11 @@ import Foundation
 import AVFoundation
 
 class PCutThumbnailManager {
-    let core: PCutCore
+    let core: Core
     
     var thumbnails = [PCutThumbnail]()
     
-    init(_ core: PCutCore) {
+    init(_ core: Core) {
         self.core = core
     }
 }

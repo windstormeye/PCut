@@ -11,10 +11,10 @@ import AVFoundation
 import Photos
 import Toaster
 
-class PCutCore {
+class Core {
     var currentTime = CMTime.zero
-    var player: PCutPlayer    
-    var timeline = PCutTimeline()
+    var player: Player    
+    var timeline = Timeline()
     
     /// timeline scale
     var currentTimeScale: Double = 1
@@ -33,7 +33,7 @@ class PCutCore {
         compositionVideoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: CMPersistentTrackID())
         // 创建出一个单独的音频轨道
         compositionAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: CMPersistentTrackID())
-        player = PCutPlayer(playerItem: AVPlayerItem(asset: composition))
+        player = Player(playerItem: AVPlayerItem(asset: composition))
         
     }
     
@@ -43,10 +43,10 @@ class PCutCore {
 }
 
 // MARK: - Mix Segments
-extension PCutCore {
+extension Core {
     func insertSegmentVideo(insertTime: CMTime,
                             trackIndex: Int,
-                            segmentVideo: PCutVideoSegment) {
+                            segmentVideo: VideoSegment) {
         timeline.videoSegments.append(segmentVideo)
         let videoAssetTrack = segmentVideo.asset.tracks(withMediaType: .video).first!
         let audioAssetTrack = segmentVideo.asset.tracks(withMediaType: .audio).first!
@@ -65,7 +65,7 @@ extension PCutCore {
 }
 
 // MARK: - Export Videos
-extension PCutCore {
+extension Core {
     func onlyVideoExport() {
         let exportSession = AVAssetExportSession(asset: self.composition, presetName: AVAssetExportPresetHighestQuality)
         exportSession?.timeRange = CMTimeRange(start: avPlayer().currentItem!.reversePlaybackEndTime,
@@ -95,7 +95,7 @@ extension PCutCore {
         parentlayer.addSublayer(videolayer)
         
         for textSegment in self.timeline.textSegments {
-            let titleLayer = PCutTextLayer(textSegment)
+            let titleLayer = TextLayer(textSegment)
             titleLayer.frame.origin = CGPoint(x: (size.width - titleLayer.frame.size.width)/2,
                                               y: titleLayer.frame.origin.y)
             parentlayer.addSublayer(titleLayer)
@@ -143,14 +143,14 @@ extension PCutCore {
 }
 
 // MARK: Update UI
-extension PCutCore {
+extension Core {
     func updateTextUI() {
         
     }
 }
 
 // MARK: - Status
-extension PCutCore {
+extension Core {
     func isPlaying() -> Bool {
         return player.player?.timeControlStatus == .playing
     }

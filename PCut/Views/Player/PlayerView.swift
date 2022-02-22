@@ -1,19 +1,16 @@
 //
-//  PCutTextLayer.swift
+//  PCutPlayerView.swift
 //  PCut
 //
-//  Created by wengpeijun on 2021/11/10.
+//  Created by wengpeijun on 2021/12/5.
 //
 
 import Foundation
 import UIKit
-import CoreMedia
 
-class PCutPreview: UIView {
-    
-    init() {
+class PlayerView: UIView {
+    override init(frame: CGRect) {
         super.init(frame: .zero)
-        setupUI()
     }
     
     required init?(coder: NSCoder) {

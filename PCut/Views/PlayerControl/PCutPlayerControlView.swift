@@ -10,9 +10,9 @@ import UIKit
 import SnapKit
 
 
-class PCutPlayerCotrolView: UIView {
+class PlayerCotrolView: UIView {
     
-    var core = PCutCore()
+    var core = Core()
     
     var preSegmentButton = UIButton()
     var nextSegmentButton = UIButton()
@@ -22,7 +22,7 @@ class PCutPlayerCotrolView: UIView {
         super.init(frame: .zero)
     }
     
-    init(core: PCutCore) {
+    init(core: Core) {
         self.core = core
         super.init(frame: .zero)
         setupUI()
@@ -57,12 +57,12 @@ class PCutPlayerCotrolView: UIView {
         }
         
         playButton.addTarget(self,
-                             action: #selector(PCutPlayerCotrolView.togglePlayerStatus),
+                             action: #selector(PlayerCotrolView.togglePlayerStatus),
                              for: .touchUpInside)
     }
 }
 
-extension PCutPlayerCotrolView {
+extension PlayerCotrolView {
     @objc
     func togglePlayerStatus() {
         if (core.isPlaying()) {

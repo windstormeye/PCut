@@ -8,13 +8,13 @@
 import Foundation
 import UIKit
 
-class PCutVideoTrack: UIScrollView {
+class VideoTrack: UIScrollView {
     // TODO: 视频主轨还是要以 UICollectionView 为准吧
 }
 
-class PCutVideoTrackSegmentView: UIView {
-    var videoSegment: PCutVideoSegment?
-    var thumbnailView = PCutThumbnailView()
+class VideoTrackSegmentView: UIView {
+    var videoSegment: VideoSegment?
+    var thumbnailView = ThumbnailView()
     
     override var frame: CGRect {
         set {
@@ -33,7 +33,7 @@ class PCutVideoTrackSegmentView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    convenience init(videoSegment: PCutVideoSegment) {
+    convenience init(videoSegment: VideoSegment) {
         self.init(frame: .zero)
         
         addSubview(thumbnailView)

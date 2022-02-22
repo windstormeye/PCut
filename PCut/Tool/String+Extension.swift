@@ -7,9 +7,7 @@
 
 import UIKit
 
-
 extension String {
-
     ///根据宽度跟字体，计算文字的高度
     func textAutoHeight(width: CGFloat, font: UIFont) -> CGFloat {
         let string = self as NSString
@@ -34,5 +32,4 @@ extension String {
         return rect.width
 
     }
-
 }

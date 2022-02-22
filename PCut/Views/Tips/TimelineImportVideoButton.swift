@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-class PCutTimelineImportVideoButton: UIButton {
+class TimelineImportVideoButton: UIButton {
     override init(frame: CGRect) {
         super.init(frame: .zero)
         setup()

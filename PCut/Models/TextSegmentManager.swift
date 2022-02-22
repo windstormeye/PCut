@@ -7,14 +7,14 @@
 
 import Foundation
 
-class PCutTextSegmentManager {
-    var core: PCutCore
+class TextSegmentManager {
+    var core: Core
     
-    init(core: PCutCore) {
+    init(core: Core) {
         self.core = core
     }
     
-    func updateTextSegment(_ textSegment: PCutTextSegment) {
+    func updateTextSegment(_ textSegment: TextSegment) {
         var oldTextSegment = core.timeline.textSegments.filter { ts in
             return textSegment == ts
         }.first

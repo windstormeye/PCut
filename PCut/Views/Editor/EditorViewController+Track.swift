@@ -9,7 +9,7 @@ import AVFoundation
 import UIKit
 
 extension EditorViewController {
-    func generateThumbnails(_ videoSegmentView: PCutVideoTrackSegmentView) {
+    func generateThumbnails(_ videoSegmentView: VideoTrackSegmentView) {
         let thumbnailGenarater = AVAssetImageGenerator(asset: videoSegmentView.videoSegment!.asset)
         thumbnailGenarater.maximumSize = CGSize(width: thumbnailWidth, height: thumbnailWidth)
         // NOTE: turn off AVAssetImageGenerator thumbnail generate buffer
@@ -66,7 +66,7 @@ extension EditorViewController {
     }
     
     func refreshThumbnail(newThumbnails: [PCutThumbnail],
-                          segmentView: PCutVideoTrackSegmentView) {
+                          segmentView: VideoTrackSegmentView) {
         var offsetX: CGFloat = 0
         let imageSize = CGSize(width: thumbnailWidth, height: thumbnailWidth)
         let imageWidth = imageSize.width * CGFloat(newThumbnails.count)

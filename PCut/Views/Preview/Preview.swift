@@ -1,18 +1,15 @@
 //
-//  PCutTimelineIndicator.swift
+//  PCutTextLayer.swift
 //  PCut
 //
-//  Created by PJHubs on 2021/11/5.
+//  Created by wengpeijun on 2021/11/10.
 //
 
 import Foundation
 import UIKit
+import CoreMedia
 
-class PCutTimelineIndicator: UIView {
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupUI()
-    }
+class Preview: UIView {
     
     init() {
         super.init(frame: .zero)
@@ -24,6 +21,6 @@ class PCutTimelineIndicator: UIView {
     }
     
     private func setupUI() {
-        backgroundColor = .white
+        
     }
 }

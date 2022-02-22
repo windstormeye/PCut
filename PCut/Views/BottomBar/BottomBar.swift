@@ -7,17 +7,22 @@
 
 import UIKit
 
-class PCutBottomSegmentBar: UISegmentedControl {
+class BottomSegmentBar: UISegmentedControl {
+    /// 数据源
     var segmentItems = [PCutBottomItem]()
-    var selectedIndexBlock: ((_ selectedIndex: Int) -> ())?
+    /// 默认选中
+    var defaultIndex: Int = 0
+    /// item 选中回调
+    var selectedIndexBlock: ((_ item: PCutBottomItem) -> ())?
     
     init() {
         super.init(items: [])
     }
     
-    convenience init(items: [PCutBottomItem]) {
+    convenience init(items: [PCutBottomItem], defaultIndex: Int) {
         self.init()
         self.segmentItems = items
+        self.defaultIndex = defaultIndex
         setupUI()
     }
     
@@ -32,25 +37,25 @@ class PCutBottomSegmentBar: UISegmentedControl {
         
         
         for (itemIndex, item) in segmentItems.enumerated() {
-            let action = UIAction(title: item.itemTitle,
+            let action = UIAction(title: item.itemIdentifier,
                                   image: UIImage(systemName: item.itemImageName)?.withTintColor(.white, renderingMode: .alwaysOriginal),
-                                  identifier: .init(rawValue: item.itemTitle),
+                                  identifier: .init(rawValue: item.itemIdentifier),
                                   discoverabilityTitle: nil,
                                   attributes: [],
                                   state: .on) { [weak self] itemAction in
                 guard let self = self else { return }
                 if (self.selectedIndexBlock != nil) {
-                    self.selectedIndexBlock!(itemIndex)
+                    self.selectedIndexBlock!(item)
                 }
             }
             insertSegment(action: action, at: itemIndex, animated: true)
         }
         
-        selectedSegmentIndex = 0
+        selectedSegmentIndex = defaultIndex
     }
 }
 
 struct PCutBottomItem {
-    var itemTitle = "item"
+    var itemIdentifier = "item"
     var itemImageName = ""
 }

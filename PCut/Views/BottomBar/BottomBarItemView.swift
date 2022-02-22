@@ -8,7 +8,7 @@
 import UIKit
 import SnapKit
 
-class PCutBottomBarItemView: UICollectionViewCell {
+class BottomBarItemView: UICollectionViewCell {
     var itemImageView = UIImageView()
     var item = PCutBottomItem() {
         didSet {

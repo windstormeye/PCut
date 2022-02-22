@@ -19,23 +19,27 @@ class EditorViewController: UIViewController {
     
     var thumbnailSrollView: UIScrollView?
     var thumbnailManager: PCutThumbnailManager?
-    var indicator: PCutTimelineIndicator?
-    var playerControlView = PCutPlayerCotrolView()
-    var importVideoView = PCutImportVideoView()
+    var indicator: TimelineIndicator?
+    var playerControlView = PlayerCotrolView()
+    var importVideoView = ImportVideoView()
     var imagePickerController = UIImagePickerController()
-    var timelineImportVideoButton = PCutTimelineImportVideoButton()
+    var timelineImportVideoButton = TimelineImportVideoButton()
     var chaseTime = CMTime.zero
     var isSeekInProgress = false
     var playerCurrentItemStatus: AVPlayerItem.Status = .unknown
-    var preview = PCutPreview()
-    var bottomBar = PCutBottomSegmentBar()
+    var preview = Preview()
+    var bottomBar = BottomSegmentBar()
     
-    var core = PCutCore()
+    var core = Core()
     /// frame data source
     var thumbnails = [PCutThumbnail]()
     /// frame collections on the screen
     var screenThumbnails = [PCutThumbnail]()
-    var videoTrackSegmentViews = [PCutVideoTrackSegmentView]()
+    var videoTrackSegmentViews = [VideoTrackSegmentView]()
+    lazy var menu: MenuView = {
+        let menu = MenuView()
+        return menu
+    }()
     
     
     override func viewDidLoad() {
@@ -60,7 +64,7 @@ class EditorViewController: UIViewController {
         view.addSubview(preview)
 
 
-        playerControlView = PCutPlayerCotrolView(core: core)
+        playerControlView = PlayerCotrolView(core: core)
         view.addSubview(playerControlView)
         
         view.addSubview(importVideoView)
@@ -81,7 +85,7 @@ class EditorViewController: UIViewController {
 //        thumbnailSrollView?.panGestureRecognizer.require(toFail: pinchGesture)
     
         
-        indicator = PCutTimelineIndicator()
+        indicator = TimelineIndicator()
         view.addSubview(indicator!)
         indicator?.isHidden = true
         
@@ -92,17 +96,19 @@ class EditorViewController: UIViewController {
                                             action: #selector(EditorViewController.timelineImportVideo),
                                             for: .touchUpInside)
         
-        let textItem = PCutBottomItem(itemTitle: "文字", itemImageName: "textformat.alt")
-        let stickerItem = PCutBottomItem(itemTitle: "贴纸", itemImageName: "theatermasks.fill")
-        let audioItem = PCutBottomItem(itemTitle: "音效", itemImageName: "music.quarternote.3")
-        let filterItem = PCutBottomItem(itemTitle: "特效", itemImageName: "wand.and.stars.inverse")
-        let videoItem = PCutBottomItem(itemTitle: "视频", itemImageName: "crop")
-        bottomBar = PCutBottomSegmentBar(items: [videoItem, textItem, stickerItem, audioItem, filterItem])
+        let textItem = PCutBottomItem(itemIdentifier: BarItem.textItem.rawValue, itemImageName: "textformat.alt")
+        let stickerItem = PCutBottomItem(itemIdentifier: BarItem.stickerItem.rawValue, itemImageName: "theatermasks.fill")
+        let audioItem = PCutBottomItem(itemIdentifier: BarItem.audioItem.rawValue, itemImageName: "music.quarternote.3")
+        let filterItem = PCutBottomItem(itemIdentifier: BarItem.effectItem.rawValue, itemImageName: "wand.and.stars.inverse")
+        let videoItem = PCutBottomItem(itemIdentifier: BarItem.videoItem.rawValue, itemImageName: "crop")
+        bottomBar = BottomSegmentBar(items: [videoItem, textItem, stickerItem, audioItem, filterItem], defaultIndex: 1)
         view.addSubview(bottomBar)
-        bottomBar.selectedIndexBlock = { [weak self] itemIndex in
+        bottomBar.selectedIndexBlock = { [weak self] item in
             guard let self = self else { return }
-            self.itemAction(itemIndex)
+            self.itemAction(item)
         }
+        
+        view.addSubview(menu)
     }
     
     private func initLayout() {
@@ -155,6 +161,12 @@ class EditorViewController: UIViewController {
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
             make.width.equalToSuperview()
             make.height.equalTo(50)
+        }
+        
+        menu.snp.makeConstraints { make in
+            make.left.right.equalToSuperview()
+            make.height.equalTo(60)
+            make.bottom.equalTo(bottomBar.snp.top)
         }
     }
 }

@@ -9,8 +9,8 @@ import Foundation
 import UIKit
 import CoreMedia
 
-class PCutTextLayer: CALayer {
-    var textSegment = PCutTextSegment()
+class TextLayer: CALayer {
+    var textSegment = TextSegment()
     private var textLayer = CATextLayer()
     private var inAnimation = CABasicAnimation();
     private var outAnimation = CABasicAnimation();
@@ -24,7 +24,7 @@ class PCutTextLayer: CALayer {
         fatalError("init(coder:) has not been implemented")
     }
     
-    convenience init(_ textSegment: PCutTextSegment) {
+    convenience init(_ textSegment: TextSegment) {
         self.init()
         self.textSegment = textSegment
         setupUI()

@@ -8,22 +8,22 @@
 import Foundation
 import UIKit
 
-protocol PCutImportVideoViewDelegate {
-    func importVideo(_ view: PCutImportVideoView)
+protocol ImportVideoViewDelegate {
+    func importVideo(_ view: ImportVideoView)
 }
 
-extension PCutImportVideoViewDelegate {
-    func importVideo(_ view: PCutImportVideoView) {}
+extension ImportVideoViewDelegate {
+    func importVideo(_ view: ImportVideoView) {}
 }
 
-class PCutImportVideoView: UIView {
-    var deletega: PCutImportVideoViewDelegate?
+class ImportVideoView: UIView {
+    var deletega: ImportVideoViewDelegate?
     
     var importVideoButton = UIButton()
     var importVideoTipsLabel = UILabel()
     var borderLayer = CAShapeLayer()
     
-    var core: PCutCore?
+    var core: Core?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -51,7 +51,7 @@ class PCutImportVideoView: UIView {
             make.size.equalTo(50)
         }
         
-        let tap = UITapGestureRecognizer(target: self, action: #selector(PCutImportVideoView.importVideo))
+        let tap = UITapGestureRecognizer(target: self, action: #selector(ImportVideoView.importVideo))
         addGestureRecognizer(tap)
         
         importVideoTipsLabel.text = "导入视频"
@@ -75,7 +75,7 @@ class PCutImportVideoView: UIView {
     }
 }
 
-extension PCutImportVideoView {
+extension ImportVideoView {
     @objc
     private func importVideo() {
         if (deletega != nil) {
