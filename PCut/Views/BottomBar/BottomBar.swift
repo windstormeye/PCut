@@ -7,7 +7,7 @@
 
 import UIKit
 
-class BottomSegmentBar: UISegmentedControl {
+class BottomBar: UISegmentedControl {
     /// 数据源
     var segmentItems = [PCutBottomItem]()
     /// 默认选中

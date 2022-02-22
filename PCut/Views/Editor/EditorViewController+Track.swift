@@ -30,13 +30,13 @@ extension EditorViewController {
             currentValue += increment
         }
         var generateCount = times.count
-        var currentThumbnails = [PCutThumbnail]()
+        var currentThumbnails = [Thumbnail]()
         
         DispatchQueue.global(qos: .background).async {
             thumbnailGenarater.generateCGImagesAsynchronously(forTimes: times, completionHandler: { requestTime, thumbnailImage, actualTime, generateResult, error in
                 switch generateResult {
                 case .succeeded:
-                    let thumbnail = PCutThumbnail(id:videoSegmentView.videoSegment!.id,
+                    let thumbnail = Thumbnail(id:videoSegmentView.videoSegment!.id,
                                                   time: actualTime,
                                                   image: thumbnailImage!)
                     thumbnail.frame.size = CGSize(width: self.thumbnailWidth, height: self.thumbnailWidth)
@@ -65,7 +65,7 @@ extension EditorViewController {
         }
     }
     
-    func refreshThumbnail(newThumbnails: [PCutThumbnail],
+    func refreshThumbnail(newThumbnails: [Thumbnail],
                           segmentView: VideoTrackSegmentView) {
         var offsetX: CGFloat = 0
         let imageSize = CGSize(width: thumbnailWidth, height: thumbnailWidth)

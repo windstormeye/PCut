@@ -14,10 +14,10 @@ extension EditorViewController {
         self.present(self.imagePickerController, animated: true, completion: nil)
     }
     
-    func itemAction(_ item: PCutBottomItem) {
+    func itemAction(bottomBar: BottomBar, _ item: PCutBottomItem) {
         switch (item.itemIdentifier) {
         case BarItem.textItem.rawValue:
-            
+            menu.items = textBottomBarMenuItems()
             break
         case BarItem.videoItem.rawValue: break
         case BarItem.stickerItem.rawValue: break

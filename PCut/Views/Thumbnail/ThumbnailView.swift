@@ -8,7 +8,7 @@
 import UIKit
 
 class ThumbnailView: UIView {
-    var thumbnail: PCutThumbnail?
+    var thumbnail: Thumbnail?
     
     override init(frame: CGRect) {
         super.init(frame: frame)

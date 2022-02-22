@@ -18,7 +18,7 @@ class EditorViewController: UIViewController {
     let videoOutput = AVPlayerItemVideoOutput()
     
     var thumbnailSrollView: UIScrollView?
-    var thumbnailManager: PCutThumbnailManager?
+    var thumbnailManager: ThumbnailManager?
     var indicator: TimelineIndicator?
     var playerControlView = PlayerCotrolView()
     var importVideoView = ImportVideoView()
@@ -28,15 +28,15 @@ class EditorViewController: UIViewController {
     var isSeekInProgress = false
     var playerCurrentItemStatus: AVPlayerItem.Status = .unknown
     var preview = Preview()
-    var bottomBar = BottomSegmentBar()
+    var bottomBar = BottomBar()
     
     var core = Core()
     /// frame data source
-    var thumbnails = [PCutThumbnail]()
+    var thumbnails = [Thumbnail]()
     /// frame collections on the screen
-    var screenThumbnails = [PCutThumbnail]()
+    var screenThumbnails = [Thumbnail]()
     var videoTrackSegmentViews = [VideoTrackSegmentView]()
-    lazy var menu: MenuView = {
+    var menu: MenuView = {
         let menu = MenuView()
         return menu
     }()
@@ -54,7 +54,7 @@ class EditorViewController: UIViewController {
     private func initView() {
         view.backgroundColor = UIColor.black
         
-        thumbnailManager = PCutThumbnailManager(core)
+        thumbnailManager = ThumbnailManager(core)
         
         imagePickerController.delegate = self
         imagePickerController.allowsEditing = true
@@ -101,11 +101,11 @@ class EditorViewController: UIViewController {
         let audioItem = PCutBottomItem(itemIdentifier: BarItem.audioItem.rawValue, itemImageName: "music.quarternote.3")
         let filterItem = PCutBottomItem(itemIdentifier: BarItem.effectItem.rawValue, itemImageName: "wand.and.stars.inverse")
         let videoItem = PCutBottomItem(itemIdentifier: BarItem.videoItem.rawValue, itemImageName: "crop")
-        bottomBar = BottomSegmentBar(items: [videoItem, textItem, stickerItem, audioItem, filterItem], defaultIndex: 1)
+        bottomBar = BottomBar(items: [videoItem, textItem, stickerItem, audioItem, filterItem], defaultIndex: 0)
         view.addSubview(bottomBar)
         bottomBar.selectedIndexBlock = { [weak self] item in
             guard let self = self else { return }
-            self.itemAction(item)
+            self.itemAction(bottomBar: self.bottomBar, item)
         }
         
         view.addSubview(menu)

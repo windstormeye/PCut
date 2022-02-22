@@ -8,7 +8,7 @@
 import UIKit
 import AVFoundation
 
-class PCutThumbnail: CALayer {
+class Thumbnail: CALayer {
     var time: CMTime = CMTime.zero
     var image: CGImage?
     var id: String?

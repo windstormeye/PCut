@@ -8,10 +8,10 @@
 import Foundation
 import AVFoundation
 
-class PCutThumbnailManager {
+class ThumbnailManager {
     let core: Core
     
-    var thumbnails = [PCutThumbnail]()
+    var thumbnails = [Thumbnail]()
     
     init(_ core: Core) {
         self.core = core
@@ -19,12 +19,12 @@ class PCutThumbnailManager {
 }
 
 /// MARK: - Generate thumbnail
-extension PCutThumbnailManager {
+extension ThumbnailManager {
     
 }
 
 /// MARK: - Helper
-extension PCutThumbnailManager {
+extension ThumbnailManager {
     func thumbnailCount(_ duration: CMTime) -> Int {
         let speed: Double = 1
         let duration = CMTimeGetSeconds(duration)
@@ -32,7 +32,7 @@ extension PCutThumbnailManager {
         return Int(ceil(duration * core.currentTimeScale / speed))
     }
     
-    func containTime(_ thumbnail: PCutThumbnail) -> Bool {
+    func containTime(_ thumbnail: Thumbnail) -> Bool {
         return thumbnails.filter { return $0.id == thumbnail.id }.count > 0
     }
 }
