@@ -88,15 +88,10 @@ extension EditorViewController: UIImagePickerControllerDelegate, UINavigationCon
                                 segmentVideo: videoSegment)
         generateThumbnails(videoTrackSegmentView)
         
-        let textSegment = TextSegment(string: "233",
-                                          fontSize: 75,
-                                          textColor: .white,
-                                          backgroundColor: .black,
-                                          duration: CMTimeMake(value: 1, timescale: 1),
-                                          startTime: CMTimeMake(value: 2, timescale: 1))
+        let textSegment = TextSegment(string: "233", fontSize: 75, textColor: .white, backgroundColor: .black, duration: CMTimeMake(value: 1, timescale: 1), startTime: CMTimeMake(value: 2, timescale: 1), inAnimationKey: "opacity", outAnimationKey: "opacity", animationDuration: 0.1)
         core.timeline.textSegments.append(textSegment)
         
-//        core.mixAssetsVideoExport()
+        core.mixAssetsVideoExport()
         
         self.imagePickerController.dismiss(animated: true, completion: nil)
     }

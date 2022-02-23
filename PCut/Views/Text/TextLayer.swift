@@ -41,28 +41,31 @@ class TextLayer: CALayer {
         textLayer.frame = CGRect(x: 0, y: 0, width: width, height: textSegment.fontSize)
         
         
-        inAnimation = CABasicAnimation(keyPath: "opacity")
+        inAnimation = CABasicAnimation(keyPath: textSegment.inAnimationKey)
+        // 动画起始变换值
         inAnimation.fromValue = 0
+        // 动画终止变换值
         inAnimation.toValue = 1
         inAnimation.isAdditive = false
         inAnimation.isRemovedOnCompletion = false
         inAnimation.beginTime = CMTimeGetSeconds(textSegment.startTime)
-        inAnimation.duration = 0.1
+        inAnimation.duration = CFTimeInterval(textSegment.animationDuration)
         inAnimation.autoreverses = false
         inAnimation.fillMode = CAMediaTimingFillMode.both
-        textLayer.add(inAnimation, forKey: "opacity")
+        textLayer.add(inAnimation, forKey: inAnimation.keyPath)
         
-        outAnimation = CABasicAnimation(keyPath: "opacity")
+        outAnimation = CABasicAnimation(keyPath: textSegment.outAnimationKey)
+        // 动画起始变换值
         outAnimation.fromValue = 1
+        // 动画终止变换值
         outAnimation.toValue = 0
         outAnimation.isAdditive = false
         outAnimation.isRemovedOnCompletion = false
-        outAnimation.beginTime = CMTimeGetSeconds(CMTimeAdd(textSegment.startTime,
-                                                                textSegment.duration))
-        outAnimation.duration = 0.1
+        outAnimation.beginTime = CMTimeGetSeconds(CMTimeAdd(textSegment.startTime, textSegment.duration))
+        outAnimation.duration = CFTimeInterval(textSegment.animationDuration)
         outAnimation.autoreverses = false
         outAnimation.fillMode = CAMediaTimingFillMode.both
-        add(outAnimation, forKey: "opacity")
+        add(outAnimation, forKey: outAnimation.keyPath)
     }
     
     func updateUI() {

@@ -22,7 +22,7 @@ class MenuItemView: UICollectionViewCell {
     var itemTitleLabel: UILabel = {
         let label = UILabel()
         label.textColor = .white
-        label.font = UIFont.systemFont(ofSize: 11)
+        label.font = UIFont.systemFont(ofSize: 10)
         label.textAlignment = .center
         return label
     }()

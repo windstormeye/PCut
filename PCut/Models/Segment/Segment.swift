@@ -9,10 +9,19 @@ import Foundation
 import AVFoundation
 import UIKit
 
+// 基础片段
 protocol Segment {
     var id: UUID { get }
 }
 
+// 动画
+protocol Animation {
+    var animationDuration: Float { get set }
+    var inAnimationKey: String { get set }
+    var outAnimationKey: String { get set }
+}
+
+// 视频片段
 struct VideoSegment: Segment, Equatable {
     let id: UUID = UUID()
     var asset: AVAsset
@@ -23,7 +32,8 @@ struct VideoSegment: Segment, Equatable {
     }
 }
 
-struct TextSegment: Segment, Equatable {
+// 文字片段
+struct TextSegment: Animation, Segment, Equatable {
     let id: UUID = UUID()
     var string: String = ""
     var fontSize: CGFloat = 0
@@ -31,6 +41,10 @@ struct TextSegment: Segment, Equatable {
     var backgroundColor: UIColor = .black
     var duration: CMTime = .zero
     var startTime: CMTime = .zero
+    
+    var inAnimationKey: String = ""
+    var outAnimationKey: String = ""
+    var animationDuration: Float = 0
     
     static func == (lhs: TextSegment, rhs: TextSegment) -> Bool {
         lhs.id == rhs.id
