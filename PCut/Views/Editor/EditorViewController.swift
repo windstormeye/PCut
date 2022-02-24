@@ -27,7 +27,7 @@ class EditorViewController: UIViewController {
     var chaseTime = CMTime.zero
     var isSeekInProgress = false
     var playerCurrentItemStatus: AVPlayerItem.Status = .unknown
-    var preview = Preview()
+//    var preview = Preview()
     var bottomBar = BottomBar()
     
     var core = Core()
@@ -60,8 +60,8 @@ class EditorViewController: UIViewController {
         imagePickerController.allowsEditing = true
         imagePickerController.mediaTypes = ["public.movie"]
         
-        view.addSubview(core.player)
-        view.addSubview(preview)
+        view.addSubview(core.playerView)
+//        view.addSubview(preview)
 
 
         playerControlView = PlayerCotrolView(core: core)
@@ -109,25 +109,29 @@ class EditorViewController: UIViewController {
         }
         
         view.addSubview(menu)
+        menu.didSelectItem = { [weak self] item in
+            guard let self = self else { return }
+            self.didSelectedMenuItem(item)
+        }
     }
     
     private func initLayout() {
         
         let playerHeight = CGFloat(UIScreen.main.bounds.size.width / 16 * 10)
-        core.player.snp.makeConstraints { make in
+        core.playerView.snp.makeConstraints { make in
             make.width.equalTo(view)
             make.height.equalTo(playerHeight)
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
         }
         
-        preview.snp.makeConstraints({ make in
-            make.size.equalTo(core.player)
-            make.top.equalTo(core.player)
-        })
+//        preview.snp.makeConstraints({ make in
+//            make.size.equalTo(core.playerView)
+//            make.top.equalTo(core.playerView)
+//        })
         
         
         playerControlView.snp.makeConstraints { make in
-            make.top.equalTo(core.player.snp.bottom)
+            make.top.equalTo(core.playerView.snp.bottom)
             make.width.equalTo(view)
             make.height.equalTo(70)
         }

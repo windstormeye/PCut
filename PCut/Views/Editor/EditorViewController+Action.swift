@@ -63,6 +63,30 @@ extension EditorViewController {
             break;
         }
     }
+    
+    func didSelectedMenuItem(_ item: MenuItem) {
+        switch item.itemIdentifier {
+        case TextBarItem.subtitleItem.rawValue:
+            let textSegment = TextSegment(string: "自动添加的字母",
+                                          fontSize: 15,
+                                          textColor: .white,
+                                          backgroundColor: .black,
+                                          duration: CMTimeMake(value: 1, timescale: 1),
+                                          startTime: CMTimeMake(value: 2, timescale: 1),
+                                          inAnimationKey: "opacity",
+                                          outAnimationKey: "opacity",
+                                          animationDuration: 0.1)
+            core.timeline.textSegments.append(textSegment)
+            
+            // TODO: 检查为什么没展示
+            let titleLayer = TextLayer(textSegment)
+            titleLayer.frame = CGRect(x: 0, y: 25, width: core.playerView.frame.size.width, height: 20)
+            core.playerView.layer.addSublayer(titleLayer)
+            PCutToast.show("字幕添加成功")
+        default:
+            break
+        }
+    }
 }
 
 extension EditorViewController: ImportVideoViewDelegate {
@@ -88,10 +112,7 @@ extension EditorViewController: UIImagePickerControllerDelegate, UINavigationCon
                                 segmentVideo: videoSegment)
         generateThumbnails(videoTrackSegmentView)
         
-        let textSegment = TextSegment(string: "233", fontSize: 75, textColor: .white, backgroundColor: .black, duration: CMTimeMake(value: 1, timescale: 1), startTime: CMTimeMake(value: 2, timescale: 1), inAnimationKey: "opacity", outAnimationKey: "opacity", animationDuration: 0.1)
-        core.timeline.textSegments.append(textSegment)
-        
-        core.mixAssetsVideoExport()
+//        core.mixAssetsVideoExport()
         
         self.imagePickerController.dismiss(animated: true, completion: nil)
     }

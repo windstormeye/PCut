@@ -10,17 +10,16 @@ import AVFoundation
 import UIKit
 
 protocol PlayerProtocol {
-    func readyToPlay(_ player: Player)
+    func readyToPlay(_ player: PlayerView)
 }
 
 extension PlayerProtocol {
-    func readyToPlay(_ player: Player) {}
+    func readyToPlay(_ player: PlayerView) {}
 }
 
-class Player: UIView {
+class PlayerView: UIView {
     var player: AVPlayer?
     var duration: CGFloat?
-    var size: CGSize?
     var delegate: PlayerProtocol?
     var playerLayer: AVPlayerLayer?
     
@@ -69,7 +68,7 @@ class Player: UIView {
 }
 
 /// MARK: - Play
-extension Player {
+extension PlayerView {
     func play() {
         player?.play()
     }

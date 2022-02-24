@@ -13,7 +13,7 @@ import Toaster
 
 class Core {
     var currentTime = CMTime.zero
-    var player: Player    
+    var playerView: PlayerView    
     var timeline = Timeline()
     
     /// timeline scale
@@ -33,12 +33,12 @@ class Core {
         compositionVideoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: CMPersistentTrackID())
         // 创建出一个单独的音频轨道
         compositionAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: CMPersistentTrackID())
-        player = Player(playerItem: AVPlayerItem(asset: composition))
+        playerView = PlayerView(playerItem: AVPlayerItem(asset: composition))
         
     }
     
     func avPlayer() -> AVPlayer {
-        return player.player!
+        return playerView.player!
     }
 }
 
@@ -152,6 +152,6 @@ extension Core {
 // MARK: - Status
 extension Core {
     func isPlaying() -> Bool {
-        return player.player?.timeControlStatus == .playing
+        return playerView.player?.timeControlStatus == .playing
     }
 }

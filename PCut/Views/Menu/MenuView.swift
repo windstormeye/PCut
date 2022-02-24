@@ -24,6 +24,8 @@ class MenuView: UIView {
         return col
     }()
     
+    var didSelectItem: ((_ item: MenuItem) -> Void)?
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         initView()
@@ -51,7 +53,11 @@ class MenuView: UIView {
 }
 
 extension MenuView: UICollectionViewDelegate {
-    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if didSelectItem != nil {
+            didSelectItem!(items[indexPath.row])
+        }
+    }
 }
 
 extension MenuView: UICollectionViewDataSource {

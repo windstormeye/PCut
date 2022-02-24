@@ -18,6 +18,12 @@ class TextLayer: CALayer {
     
     override init() {
         super.init()
+        setupUI()
+    }
+    
+    override init(layer: Any) {
+        super.init(layer: layer)
+        setupUI()
     }
     
     required init?(coder: NSCoder) {

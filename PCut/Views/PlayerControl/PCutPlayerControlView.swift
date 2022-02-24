@@ -66,10 +66,10 @@ extension PlayerCotrolView {
     @objc
     func togglePlayerStatus() {
         if (core.isPlaying()) {
-            core.player.pause()
+            core.playerView.pause()
             playButton.setImage(UIImage(systemName: "play.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         } else {
-            core.player.play()
+            core.playerView.play()
             playButton.setImage(UIImage(systemName: "pause.fill")?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
         }
     }
