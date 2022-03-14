@@ -14,25 +14,25 @@ class TextLayer: CALayer {
     private var textLayer = CATextLayer()
     private var inAnimation = CABasicAnimation();
     private var outAnimation = CABasicAnimation();
+    private var previewMode = true
     
     
     override init() {
         super.init()
-        setupUI()
     }
     
     override init(layer: Any) {
         super.init(layer: layer)
-        setupUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    convenience init(_ textSegment: TextSegment) {
+    convenience init(_ textSegment: TextSegment, previewMode: Bool) {
         self.init()
         self.textSegment = textSegment
+        self.previewMode = previewMode
         setupUI()
     }
     
@@ -42,10 +42,10 @@ class TextLayer: CALayer {
         textLayer.string = textSegment.string
         textLayer.fontSize = textSegment.fontSize;
         textLayer.alignmentMode = CATextLayerAlignmentMode.center
-        let width = textSegment.string.textAutoWidth(height: textSegment.fontSize,
-                                                      font: UIFont.systemFont(ofSize: textSegment.fontSize))
-        textLayer.frame = CGRect(x: 0, y: 0, width: width, height: textSegment.fontSize)
-        
+        let width = textSegment.string.textAutoWidth(height: textSegment.fontSize, font: UIFont.systemFont(ofSize: textSegment.fontSize))
+        let height = textSegment.string.textAutoHeight(width: width, font: .systemFont(ofSize: textSegment.fontSize))
+        frame = CGRect(x: 0, y: 0, width: width, height: height)
+        textLayer.frame = frame
         
         inAnimation = CABasicAnimation(keyPath: textSegment.inAnimationKey)
         // 动画起始变换值
@@ -57,7 +57,8 @@ class TextLayer: CALayer {
         inAnimation.beginTime = CMTimeGetSeconds(textSegment.startTime)
         inAnimation.duration = CFTimeInterval(textSegment.animationDuration)
         inAnimation.autoreverses = false
-        inAnimation.fillMode = CAMediaTimingFillMode.both
+        inAnimation.fillMode = .forwards
+        // NOTE: 动画冲突，只能执行一个，故分别 add 到不同宿主上
         textLayer.add(inAnimation, forKey: inAnimation.keyPath)
         
         outAnimation = CABasicAnimation(keyPath: textSegment.outAnimationKey)
@@ -70,21 +71,12 @@ class TextLayer: CALayer {
         outAnimation.beginTime = CMTimeGetSeconds(CMTimeAdd(textSegment.startTime, textSegment.duration))
         outAnimation.duration = CFTimeInterval(textSegment.animationDuration)
         outAnimation.autoreverses = false
-        outAnimation.fillMode = CAMediaTimingFillMode.both
+        outAnimation.fillMode = .forwards
+        // NOTE: 动画冲突，只能执行一个，故分别 add 到不同宿主上
         add(outAnimation, forKey: outAnimation.keyPath)
-    }
-    
-    func updateUI() {
-        textLayer.string = textSegment.string
-        textLayer.fontSize = textSegment.fontSize;
-        textLayer.alignmentMode = CATextLayerAlignmentMode.center
-        let width = textSegment.string.textAutoWidth(height: textSegment.fontSize,
-                                                      font: UIFont.systemFont(ofSize: textSegment.fontSize))
-        textLayer.frame = CGRect(x: 0, y: 0, width: width, height: textSegment.fontSize)
         
-        inAnimation.beginTime = CMTimeGetSeconds(textSegment.startTime)
-        outAnimation.beginTime = CMTimeGetSeconds(CMTimeAdd(textSegment.startTime,
-                                                                textSegment.duration))
-
+        if previewMode {
+            speed = 0
+        }
     }
 }

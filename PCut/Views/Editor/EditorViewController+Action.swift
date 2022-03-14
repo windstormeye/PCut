@@ -67,8 +67,8 @@ extension EditorViewController {
     func didSelectedMenuItem(_ item: MenuItem) {
         switch item.itemIdentifier {
         case TextBarItem.subtitleItem.rawValue:
-            let textSegment = TextSegment(string: "自动添加的字母",
-                                          fontSize: 15,
+            let textSegment = TextSegment(string: "自动添加的字幕",
+                                          fontSize: 30,
                                           textColor: .white,
                                           backgroundColor: .black,
                                           duration: CMTimeMake(value: 1, timescale: 1),
@@ -78,11 +78,14 @@ extension EditorViewController {
                                           animationDuration: 0.1)
             core.timeline.textSegments.append(textSegment)
             
-            // TODO: 检查为什么没展示
-            let titleLayer = TextLayer(textSegment)
-            titleLayer.frame = CGRect(x: 0, y: 25, width: core.playerView.frame.size.width, height: 20)
+            let titleLayer = TextLayer(textSegment, previewMode: true)
+            let x = (core.playerView.frame.size.width - titleLayer.frame.size.width) / 2
+            let y = core.playerView.frame.size.height - titleLayer.frame.size.height
+            titleLayer.frame.origin = CGPoint(x: x, y: y)
             core.playerView.layer.addSublayer(titleLayer)
             PCutToast.show("字幕添加成功")
+            
+            core.mixAssetsVideoExport()
         default:
             break
         }
@@ -111,9 +114,6 @@ extension EditorViewController: UIImagePickerControllerDelegate, UINavigationCon
                                 trackIndex: 0,
                                 segmentVideo: videoSegment)
         generateThumbnails(videoTrackSegmentView)
-        
-//        core.mixAssetsVideoExport()
-        
         self.imagePickerController.dismiss(animated: true, completion: nil)
     }
 }

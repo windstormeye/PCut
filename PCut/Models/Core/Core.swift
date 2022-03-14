@@ -86,7 +86,6 @@ extension Core {
     
     func mixAssetsVideoExport() {
         let size = self.compositionVideoTrack!.naturalSize
-        
         let parentlayer = CALayer()
         parentlayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         
@@ -94,18 +93,24 @@ extension Core {
         videolayer.frame = CGRect(x: 0, y: 0, width: size.width, height: size.height)
         parentlayer.addSublayer(videolayer)
         
-        for textSegment in self.timeline.textSegments {
-            let titleLayer = TextLayer(textSegment)
+        for var textSegment in self.timeline.textSegments {
+            let fontSize = size.width / (UIScreen.main.bounds.size.width / textSegment.fontSize)
+            textSegment.fontSize = fontSize
+            
+            let titleLayer = TextLayer(textSegment, previewMode: false)
             titleLayer.frame.origin = CGPoint(x: (size.width - titleLayer.frame.size.width)/2,
                                               y: titleLayer.frame.origin.y)
             parentlayer.addSublayer(titleLayer)
         }
 
+        // 视频混合器
         let layercomposition = AVMutableVideoComposition()
-        layercomposition.frameDuration = CMTimeMake(value: 1, timescale: 30)
+        layercomposition.frameDuration = CMTimeMake(value: 1, timescale: 60)
         layercomposition.renderSize = size
+        // Core Animation 混合
         layercomposition.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videolayer, in: parentlayer)
 
+        // 视频修改器，必须有，作为视频混合器的配置项
         let instruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = CMTimeRangeMake(start: CMTime.zero, duration: self.composition.duration)
         let videotrack = self.composition.tracks(withMediaType: AVMediaType.video)[0] as AVAssetTrack
